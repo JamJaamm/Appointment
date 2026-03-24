@@ -1,0 +1,35 @@
+{% extends "user_header_footer.html" %}
+{% load static %}
+
+{% block title %}Cancel Appointment{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Cancellation</h4>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <p class="lead">Are you sure you want to cancel this appointment?</p>
+
+                    <div class="alert alert-light border ">
+                        <strong>Doctor:</strong> Dr. {{ appointment.doctor.get_full_name }}<br>
+                        <strong>Date:</strong> {{ appointment.date|date:'M d, Y' }}<br>
+                        <strong>Time:</strong> {{ appointment.date|time:'H:i' }}
+                    </div >
+
+                    <p class="text-muted small">This action cannot be undone.</p>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <a href="{% url 'patient_appointments' %}" class="btn btn-secondary me-2">Go Back</a>
+                        <button type="submit" class="btn btn-danger">Yes, Cancel Appointment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

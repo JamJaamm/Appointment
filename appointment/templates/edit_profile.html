@@ -1,0 +1,149 @@
+{% extends "user_header_footer.html" %}
+
+{% load static %}
+{% load humanize %}
+{% block title %}Profile{% endblock title %}
+
+{% block content %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  }
+
+  .card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 5px rgba(13, 110, 253, 0.2);
+  }
+
+  .btn-primary {
+    background-color: #0d6efd;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background-color: #0b5ed7;
+  }
+
+  .profile-preview {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #0d6efd;
+  }
+
+  .upload-label {
+    cursor: pointer;
+  }
+
+  .small-muted {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+</style>
+</head>
+
+<body>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="fas fa-user-edit me-2 text-primary"></i>Edit Profile</h4>
+            <a href="{% url 'user_profile' %}" class="btn btn-outline-secondary btn-sm"><i
+                class="fas fa-arrow-left me-1"></i>Back</a>
+          </div>
+          <form id="editProfileForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Profile photo upload + preview -->
+            <div class="mb-4 text-center w-100">
+              {% if userinfo.profile_picture and userinfo.profile_picture.name %}
+              <img id="profilePicPreview" src="{{ userinfo.profile_picture.url }}" alt="Profile" class="profile-preview mb-3">
+              {% else %}
+              <img id="profilePicPreview" src="https://i.pravatar.cc/150?u={{ target.username }}" alt="Profile"
+                class="profile-preview mb-3">
+              {% endif %}
+
+              <div class="d-flex justify-content-center align-items-center gap-2">
+                <label class="btn btn-outline-secondary btn-sm upload-label mb-0">
+                  <i class="fas fa-upload me-1"></i> Change Photo
+                  <input type="file" name="profile_photo" id="profilePhotoInput" accept="image/*" hidden>
+                </label>
+              </div>
+              <div class="small-muted mt-2">Allowed: JPG, PNG — Max 2MB</div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label"><i class="fas fa-user me-1"></i> First Name</label>
+                <input type="text" name="firstName" class="form-control" value="{{ target.first_name }}" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label"><i class="fas fa-user me-1"></i> Last Name</label>
+                <input type="text" name="lastName" class="form-control" value="{{ target.last_name }}" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label"><i class="fas fa-envelope me-1"></i> Email</label>
+                <input type="email" name="email" class="form-control" value="{{ target.email }}" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label"><i class="fas fa-phone me-1"></i> Phone</label>
+                <input type="tel" name="phone" class="form-control" value="{{ userinfo.phone_number|default:'' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label"><i class="fas fa-calendar me-1"></i> Date of Birth</label>
+                <input type="date" name="dob" class="form-control" value="{{ userinfo.dob|date:'Y-m-d' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label"><i class="fas fa-venus-mars me-1"></i> Gender</label>
+                <select class="form-select" name="gender">
+                  <option value="" {% if not userinfo.gender %}selected{% endif %}>Select Gender</option>
+                  <option value="Male" {% if userinfo.gender == 'Male' %}selected{% endif %}>Male</option>
+                  <option value="Female" {% if userinfo.gender == 'Female' %}selected{% endif %}>Female</option>
+                  <option value="Other" {% if userinfo.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label"><i class="fas fa-map-marker-alt me-1"></i> Address</label>
+                <textarea class="form-control" name="address" rows="3">{{ userinfo.location|default:'' }}</textarea>
+              </div>
+              <div class="col-12 text-center mt-3">
+                <button type="submit" class="btn btn-primary w-50">Save Changes</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Profile picture preview
+    const photoInput = document.getElementById('profilePhotoInput');
+    const previewImg = document.getElementById('profilePicPreview');
+
+    if (photoInput) {
+      photoInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          previewImg.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+
+  {% endblock content %}

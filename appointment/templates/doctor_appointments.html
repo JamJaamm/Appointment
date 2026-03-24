@@ -1,0 +1,258 @@
+{% extends "doctor_header_footer.html" %}
+{% load static %}
+
+{% block title %}Manage Appointments{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+  body {
+    background: #f8f9fa;
+    font-family: 'Segoe UI', Roboto, Arial;
+  }
+
+  .container {
+    max-width: 1200px;
+  }
+
+  .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .appointment-card {
+    border-left: 4px solid #0d6efd;
+    transition: transform 0.2s;
+  }
+
+  .appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .appointment-card.cancelled {
+    border-left-color: #dc3545;
+    opacity: 0.75;
+  }
+
+  .appointment-card.pending {
+    border-left-color: #ffc107;
+  }
+
+  .appointment-card.approved {
+    border-left-color: #28a745;
+  }
+
+  .appointment-card.completed {
+    border-left-color: #6c757d;
+  }
+
+  .appointment-card.reschedule_requested {
+    border-left-color: #17a2b8;
+  }
+
+  .status-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .status-pending {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .status-approved {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .status-completed {
+    background: #e2e3e5;
+    color: #383d41;
+  }
+
+  .status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .status-reschedule_requested {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+
+  .patient-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+</style>
+
+<div class="container py-5">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-user-md me-2 text-primary"></i>Manage Appointments</h2>
+  </div>
+
+  <!-- Info Banner -->
+  <div class="alert alert-info mb-4">
+    <i class="fas fa-info-circle me-2"></i>
+    Only appointments approved by the admin are shown here.
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="card p-3 mb-4">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <form method="get" class="d-flex">
+          <input type="text" class="form-control" name="search" placeholder="Search by patient name or reason..."
+            value="{{ search_query }}">
+          <button type="submit" class="btn btn-outline-primary ms-2">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" name="type" onchange="window.location.href='?type=' + this.value">
+          <option value="pending" {% if app_type == 'pending' or not app_type %}selected{% endif %}>Pending Requests</option>
+          <option value="upcoming" {% if app_type == 'upcoming' %}selected{% endif %}>Upcoming Approved</option>
+          <option value="past" {% if app_type == 'past' %}selected{% endif %}>Past / History</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" name="status"
+          onchange="window.location.href='?status=' + this.value + '&type={{ app_type|default:"pending" }}'">
+          <option value="">All Statuses</option>
+          <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+          <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+          <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+          <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+          <option value="reschedule_requested" {% if status_filter == 'reschedule_requested' %}selected{% endif %}>
+            Reschedule Requested</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- Appointments List -->
+  {% if appointments %}
+  <div class="row g-3">
+    {% for appointment in appointments %}
+    <div class="col-lg-6">
+      <div class="card appointment-card {{ appointment.status }} p-4">
+        <div class="row">
+          <!-- Patient Info -->
+          <div class="col-auto">
+            {% if appointment.patient.user.userinfo.profile_picture and appointment.patient.user.userinfo.profile_picture.name %}
+            <img src="{{ appointment.patient.user.userinfo.profile_picture.url }}" alt="Patient" class="patient-avatar">
+            {% else %}
+            <img src="https://i.pravatar.cc/60?img={{ appointment.patient.id }}" alt="Patient" class="patient-avatar">
+            {% endif %}
+          </div>
+
+          <!-- Details -->
+          <div class="col">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h5 class="mb-1">{{ appointment.patient.user.get_full_name }}</h5>
+                <small class="text-muted">Age: {{ appointment.patient.age }} | Gender: {{
+                  appointment.patient.user.userinfo.gender }}</small>
+              </div>
+              <div class="text-end">
+                <span class="status-badge status-{{ appointment.status }}">{{ appointment.get_status_display }}</span>
+                <small class="d-block text-muted mt-1">Admin: {{ appointment.admin_status }}</small>
+              </div>
+            </div>
+
+            <!-- Appointment Details -->
+            <div class="appointment-details">
+              <p class="mb-2"><i class="fas fa-calendar me-2 text-primary"></i><strong>{{ appointment.date|date:'M d, Y'
+                  }}</strong></p>
+              <p class="mb-2"><i class="fas fa-clock me-2 text-primary"></i><strong>{{ appointment.date|time:'H:i'
+                  }}</strong> ({{ appointment.duration }} mins)</p>
+              <p class="mb-2"><i class="fas fa-stethoscope me-2 text-primary"></i>{{ appointment.reason }}</p>
+
+              {% if appointment.reschedule_reason %}
+              <p class="mb-2 text-info"><i class="fas fa-info-circle me-2"></i><strong>Reschedule Note:</strong> {{
+                appointment.reschedule_reason }}</p>
+              {% endif %}
+
+              {% if appointment.notes %}
+              <p class="mb-2"><i class="fas fa-file-alt me-2 text-secondary"></i><strong>Notes:</strong> {{
+                appointment.notes }}</p>
+              {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-3 d-flex flex-wrap gap-2">
+              {% if appointment.status == 'pending' and appointment.admin_status == 'approved' %}
+              <a href="{% url 'approve_appointment' appointment.id %}" class="btn btn-sm btn-success">
+                <i class="fas fa-check me-1"></i>Approve
+              </a>
+              <a href="{% url 'decline_appointment' appointment.id %}" class="btn btn-sm btn-danger">
+                <i class="fas fa-times me-1"></i>Decline
+              </a>
+              <a href="{% url 'request_reschedule' appointment.id %}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-sync me-1"></i>Request Reschedule
+              </a>
+              {% elif appointment.status == 'approved' %}
+              <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-sm btn-success">
+                <i class="fas fa-check-double me-1"></i>Mark Complete
+              </a>
+              <a href="{% url 'request_reschedule' appointment.id %}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-sync me-1"></i>Request Reschedule
+              </a>
+              <a href="{% url 'decline_appointment' appointment.id %}" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-ban me-1"></i>Cancel
+              </a>
+              {% else %}
+              <small class="text-muted">Status: {{ appointment.status }} | Admin: {{ appointment.admin_status }}</small>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty-state">
+      <i class="fas fa-calendar-check"></i>
+      <h4>No appointments found</h4>
+      <p>There are no appointments matching your criteria.</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

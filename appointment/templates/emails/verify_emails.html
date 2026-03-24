@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify your email</title>
+    <style>
+      /* Email-safe, minimalist styles. Keep selectors simple for better client support */
+      body { background: #f3f7fb; margin: 0; padding: 0; -webkit-text-size-adjust: none; }
+      .wrapper { width: 100%; table-layout: fixed; background-color: #f3f7fb; padding: 30px 0; }
+      .container { background: #ffffff; width: 100%; max-width: 620px; margin: 0 auto; border-radius: 12px; overflow: hidden; }
+      .header { background: #0d6efd; color: #ffffff; padding: 22px 28px; text-align: left; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+      .brand { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; }
+      .content { padding: 28px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333333; }
+      h1 { margin: 0 0 8px 0; font-size: 20px; font-weight: 600; color: #111827; }
+      p { margin: 0 0 16px 0; font-size: 15px; line-height: 1.5; color: #4b5563; }
+      .button { display: inline-block; background: #0d6efd; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; }
+      .muted { color: #6b7280; font-size: 13px; }
+      .small { font-size: 13px; color: #6b7280; }
+      .footer { padding: 18px 28px; text-align: center; font-size: 12px; color: #9ca3af; }
+      .card { border-radius: 8px; background: #fbfdff; padding: 18px; box-shadow: 0 1px 0 rgba(0,0,0,0.02); }
+      @media only screen and (max-width:600px){ .content{padding:18px;} .header{padding:16px;} }
+    </style>
+  </head>
+  <body>
+    <center class="wrapper">
+      <table class="container" role="presentation" cellspacing="0" cellpadding="0">
+        <tr>
+          <td class="header">
+            <span class="brand">MediCare</span>
+          </td>
+        </tr>
+        <tr>
+          <td class="content">
+            <div class="card">
+              <h1>Verify your email</h1>
+              <p class="muted">Hi {{ user.first_name|default:user.username }}, thanks for creating an account. Click the button below to confirm your email address and finish setting up your MediCare account.</p>
+
+              <p style="text-align:center; margin:20px 0;">
+                <a href="{{ verification_link }}" class="button" target="_blank" rel="noopener">Verify Email</a>
+              </p>
+
+              <p class="small" style="text-align:center;">This verification link will expire in <strong>{{ expiry_minutes }}</strong> minutes.</p>
+              <hr style="border:none; height:1px; background:#eef2ff; margin:18px 0;">
+              <p class="small">If the button doesn't work, copy and paste this URL into your browser:</p>
+              <p class="small" style="word-break:break-all;"><a href="{{ verification_link }}" style="color:#0d6efd; text-decoration:underline;">{{ verification_link }}</a></p>
+              <p class="muted" style="margin-top:14px;">If you didn't request this, you can safely ignore this email.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="footer">
+            <div>MediCare • <span style="color:#9ca3af;">Providing better care, virtually</span></div>
+            <div style="margin-top:6px;">&copy; {{ now|date:"Y" }} MediCare. All rights reserved.</div>
+          </td>
+        </tr>
+      </table>
+    </center>
+  </body>
+</html>

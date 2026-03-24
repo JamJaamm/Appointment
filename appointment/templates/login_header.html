@@ -1,0 +1,1438 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>{% block title %} {% endblock title %}</title>
+    <!-- jQuery -->
+    <script src="{% static 'cdn/jquery-3.1.1.min.js' %}" type='text/javascript'></script>
+    <script src="{% static 'cdn/jquery-ui.min.js' %}" type='text/javascript'></script>
+    <link href="{% static 'cdn/jquery-ui.min.css' %}" rel='stylesheet' type='text/css'>
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230070a0'/%3E%3Cpath d='M16 8V24M8 16H24' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+
+    <!--Bootstrap-->
+    <script src="{% static 'cdn/popper.min.js' %}"></script>
+    <link href="{% static 'cdn/font-awesome.min.css' %}" rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="{% static 'cdn/bootstrap.min.css' %}">
+    <script src="{% static 'cdn/bootstrap.bundle.min.js' %}" type='text/javascript'></script>
+    <link rel="stylesheet" href="{% static 'cdn/bootstrap1.min.css' %}">
+    <script src="{% static 'cdn/bootstrap.min.js' %}"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ========================================
+   CSS Variables - Light Mode (Default)
+   ======================================== */
+:root {
+  /* Primary Colors */
+  --primary-blue: #0070a0;
+  --primary-blue-dark: #00577c;
+  --primary-blue-soft: #2c90c9;
+  --primary-blue-light: #1b9cca;
+  
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f9fa;
+  --bg-tertiary: #cce5f3;
+  
+  /* Text Colors */
+  --text-primary: #1f1f1f;
+  --text-secondary: #33383f;
+  --text-muted: #626a72;
+  --text-light: #99a4af;
+  
+  /* Border Colors */
+  --border-color: #dee5eb;
+  --border-light: #c2cdd8;
+  
+  /* Accent Colors */
+  --accent-cream: #cce5f3;
+  --accent-yellow: #faea73;
+  --accent-pink: #f7cedc;
+  --accent-cyan: #cceff6;
+  
+  /* Shadow */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12);
+  
+  /* Typography */
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* ========================================
+   Dark Mode Variables
+   ======================================== */
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+  
+  --border-color: #334155;
+  --border-light: #475569;
+  
+  --accent-cream: #1e3a5f;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-fast);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ========================================
+   Bootstrap Overrides
+   ======================================== */
+.btn-primary {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-blue-dark);
+  border-color: var(--primary-blue-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-primary {
+  color: var(--primary-blue);
+  border-color: var(--border-color);
+  background-color: transparent;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .btn-outline-primary {
+  color: var(--primary-blue-soft);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--primary-blue-soft);
+}
+
+.card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all var(--transition-fast);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+[data-theme="dark"] .card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.form-control, .form-select {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: var(--bg-primary);
+  border-color: var(--primary-blue);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 0.2rem rgba(0, 112, 160, 0.25);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 16px;
+}
+
+.bg-primary-soft {
+  background-color: var(--accent-cream) !important;
+  color: var(--primary-blue) !important;
+}
+
+[data-theme="dark"] .bg-primary-soft {
+  background-color: var(--accent-cream) !important;
+  color: var(--primary-blue-soft) !important;
+}
+
+/* ========================================
+   Custom Utility Classes
+   ======================================== */
+.section-padding {
+  padding: 5rem 0;
+}
+
+@media (min-width: 992px) {
+  .section-padding {
+    padding: 7.5rem 0;
+  }
+}
+
+.label-small {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-blue);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .label-small {
+  color: var(--primary-blue-soft);
+}
+
+.text-muted-custom {
+  color: var(--text-muted) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-tertiary-custom {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* ========================================
+   Navigation
+   ======================================== */
+.navbar {
+  padding: 1rem 0;
+  transition: all var(--transition-fast);
+  background-color: transparent;
+}
+
+.navbar.scrolled {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .navbar.scrolled {
+  background-color: rgba(15, 23, 42, 0.95);
+}
+
+.navbar-brand {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-blue) !important;
+}
+
+[data-theme="dark"] .navbar-brand {
+  color: var(--primary-blue-soft) !important;
+}
+
+.nav-link {
+  color: var(--text-secondary) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--primary-blue) !important;
+}
+
+[data-theme="dark"] .nav-link {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .nav-link:hover {
+  color: var(--primary-blue-soft) !important;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* ========================================
+   Hero Section
+   ======================================== */
+.hero-section {
+  min-height: 100vh;
+  padding-top: 100px;
+  background: linear-gradient(166deg, #cce5f3 4%, #f7f9fa 56%, #fff 56%);
+  display: flex;
+  align-items: center;
+}
+
+[data-theme="dark"] .hero-section {
+  background: linear-gradient(166deg, #1e3a5f 4%, #0f172a 56%, #0f172a 56%);
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+.hero-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  max-width: 540px;
+}
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .stat-icon {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.hero-image-wrapper {
+  position: relative;
+}
+
+.hero-image {
+  border-radius: 16px;
+  box-shadow: var(--shadow-hover);
+}
+
+.hero-floating-card {
+  position: absolute;
+  bottom: -20px;
+  left: -20px;
+  background-color: var(--bg-primary);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+[data-theme="dark"] .hero-floating-card {
+  background-color: var(--bg-secondary);
+}
+
+/* ========================================
+   About Section
+   ======================================== */
+.about-image-wrapper {
+  position: relative;
+}
+
+.about-image {
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+}
+
+.about-decoration {
+  position: absolute;
+  bottom: -24px;
+  right: -24px;
+  width: 120px;
+  height: 120px;
+  background-color: var(--accent-cream);
+  border-radius: 16px;
+  z-index: -1;
+}
+
+[data-theme="dark"] .about-decoration {
+  background-color: var(--accent-cream);
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.feature-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--primary-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   Doctor Cards
+   ======================================== */
+.doctor-card {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.doctor-image-wrapper {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  border: 4px solid var(--accent-cream);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .doctor-image-wrapper {
+  border-color: var(--accent-cream);
+}
+
+.doctor-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doctor-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.doctor-specialty {
+  margin-bottom: 0.5rem;
+}
+
+.doctor-experience {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.doctor-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.star-icon {
+  color: #faea73;
+}
+
+/* ========================================
+   Booking Form
+   ======================================== */
+.booking-form-wrapper {
+  background-color: var(--bg-primary);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="dark"] .booking-form-wrapper {
+  background-color: var(--bg-secondary);
+}
+
+.benefit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.benefit-list li {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.benefit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .benefit-icon {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+/* ========================================
+   Health Tips Carousel
+   ======================================== */
+.tip-card .card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+.tip-card .card-body {
+  padding: 1.25rem;
+}
+
+/* ========================================
+   FAQ & Chatbot
+   ======================================== */
+.accordion-item {
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.accordion-button {
+  background-color: transparent;
+  color: var(--text-primary);
+  font-weight: 500;
+  padding: 1.25rem 0;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: transparent;
+  color: var(--primary-blue);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .accordion-button:not(.collapsed) {
+  color: var(--primary-blue-soft);
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: var(--border-color);
+}
+
+.accordion-button::after {
+  filter: invert(0);
+}
+
+[data-theme="dark"] .accordion-button::after {
+  filter: invert(1);
+}
+
+.accordion-body {
+  padding: 0 0 1.25rem 0;
+  color: var(--text-muted);
+}
+
+/* Chatbot */
+.chatbot-container {
+  background-color: var(--bg-primary);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .chatbot-container {
+  background-color: var(--bg-secondary);
+}
+
+.chatbot-header {
+  background-color: var(--primary-blue);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+[data-theme="dark"] .chatbot-header {
+  background-color: var(--primary-blue);
+}
+
+.chatbot-messages {
+  height: 280px;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.message {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.message-avatar.bot {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+.message-avatar.user {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .message-avatar.user {
+  color: var(--primary-blue-soft);
+}
+
+.message-bubble {
+  max-width: 75%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+}
+
+.message-bubble.bot {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-top-left-radius: 4px;
+}
+
+[data-theme="dark"] .message-bubble.bot {
+  background-color: var(--bg-primary);
+}
+
+.message-bubble.user {
+  background-color: var(--primary-blue);
+  color: white;
+  border-top-right-radius: 4px;
+}
+
+.chatbot-quick-actions {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quick-action-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  background-color: var(--bg-secondary);
+  color: var(--primary-blue);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .quick-action-btn {
+  background-color: var(--bg-primary);
+  color: var(--primary-blue-soft);
+}
+
+.quick-action-btn:hover {
+  background-color: var(--accent-cream);
+}
+
+.chatbot-input {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ========================================
+   Features
+   ======================================== */
+.feature-card {
+  padding: 2rem;
+  height: 100%;
+}
+
+.feature-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  color: var(--primary-blue);
+  transition: transform var(--transition-fast);
+}
+
+[data-theme="dark"] .feature-icon-wrapper {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.feature-card:hover .feature-icon-wrapper {
+  transform: scale(1.1);
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.feature-description {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* ========================================
+   How It Works
+   ======================================== */
+.step-wrapper {
+  text-align: center;
+  position: relative;
+}
+
+.step-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  margin-bottom: 1.5rem;
+}
+
+.step-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--primary-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 112, 160, 0.3);
+}
+
+.step-number {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .step-number {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.step-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.step-description {
+  color: var(--text-muted);
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.steps-connector {
+  position: absolute;
+  top: 40px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-top: 2px dashed var(--accent-cream);
+  z-index: -1;
+}
+
+[data-theme="dark"] .steps-connector {
+  border-color: var(--accent-cream);
+}
+
+@media (max-width: 767px) {
+  .steps-connector {
+    display: none;
+  }
+}
+
+/* ========================================
+   Testimonials
+   ======================================== */
+.testimonial-card {
+  padding: 2rem;
+  height: 100%;
+}
+
+.quote-icon {
+  color: var(--primary-blue);
+  opacity: 0.2;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .quote-icon {
+  color: var(--primary-blue-soft);
+}
+
+.testimonial-content {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.testimonial-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.testimonial-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.testimonial-role {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* ========================================
+   CTA Section
+   ======================================== */
+.cta-section {
+  background: linear-gradient(135deg, #0070a0 0%, #004968 100%);
+  padding: 5rem 0;
+}
+
+.cta-title {
+  color: white;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+}
+
+.cta-note {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+
+.btn-white {
+  background-color: white;
+  color: var(--primary-blue);
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  transition: all var(--transition-fast);
+}
+
+.btn-white:hover {
+  background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+.footer {
+  background-color: #1f1f1f;
+  padding: 4rem 0 2rem;
+}
+
+[data-theme="dark"] .footer {
+  background-color: #0a0f1d;
+}
+
+.footer-brand {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.footer-description {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.5rem;
+}
+
+.footer-title {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.75rem;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.6);
+  transition: color var(--transition-fast);
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+.footer-contact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-contact li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.footer-contact-icon {
+  color: var(--primary-blue);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.social-links {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.social-link {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all var(--transition-fast);
+}
+
+.social-link:hover {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 2rem;
+  margin-top: 3rem;
+}
+
+.footer-copyright {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+.footer-legal {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-legal a {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.875rem;
+  transition: color var(--transition-fast);
+}
+
+.footer-legal a:hover {
+  color: white;
+}
+
+/* ========================================
+   Scroll Animations
+   ======================================== */
+.reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal-left.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-right {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal-right.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Stagger delays */
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+.stagger-6 { transition-delay: 0.6s; }
+
+/* ========================================
+   Custom Scrollbar
+   ======================================== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+@media (max-width: 991px) {
+  .hero-section {
+    padding-top: 80px;
+    min-height: auto;
+    padding-bottom: 4rem;
+  }
+  
+  .hero-stats {
+    gap: 1.5rem;
+  }
+  
+  .steps-connector {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .section-padding {
+    padding: 3rem 0;
+  }
+  
+  .hero-floating-card {
+    display: none;
+  }
+  
+  .about-decoration {
+    display: none;
+  }
+  
+  .booking-form-wrapper {
+    padding: 1.5rem;
+  }
+  
+  .footer-legal {
+    margin-top: 1rem;
+  }
+}
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+  
+  .reveal,
+  .reveal-left,
+  .reveal-right {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+        .hover-opacity {
+            transition: opacity 0.3s ease;
+        }
+        
+        .hover-opacity:hover {
+            opacity: 0.7 !important;
+        }
+        
+        .footer {
+            margin-top: auto;
+        }
+        
+        .footer a {
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.8);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .footer a.text-decoration-none::after {
+            background-color: transparent;
+        }
+        
+        .footer a:not(.text-decoration-none):hover::after {
+            transform: scaleX(1);
+        }
+    </style>
+</head>
+
+<body>
+        <!-- Loading Spinner -->
+    <div class="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url "home" %}">MediCare</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url "home" %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "services" %}">Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "doctors" %}">Doctors</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "about" %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "contact" %}">Contact</a>
+                    </li>
+                </ul>
+
+                {% if not user.is_authenticated %}
+                    <div class="d-flex">
+                        <a href="{% url 'login' %}" class="btn btn-outline-light me-2">Login</a>
+                        <a href="{% url 'register' %}" class="btn btn-light">Register</a>
+                    </div>
+                {% else %}
+                     <div class="d-flex">
+                        <a href="{% url 'logout' %}" class="btn btn-outline-light me-2">Logout</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav> -->
+
+     <!-- ========================================
+     Navigation
+     ======================================== -->
+  <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'home' %}">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-2">
+          <rect width="32" height="32" rx="8" fill="#0070a0"/>
+          <path d="M16 8V24M8 16H24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        MediCare
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-auto">
+          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}">Doctors</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'services' %}">Services</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
+        </ul>
+
+        <div class="d-flex align-items-center gap-3">
+          <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <i class="bi bi-sun-fill" id="themeIcon"></i>
+          </button>
+          {% if not user.is_authenticated %}
+            <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Login</a>
+            <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+          {% else %}
+            <a href="{% url 'logout' %}" class="btn btn-outline-primary me-2">Logout</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+
+    {% block content %}
+
+    {% endblock content %}
+
+    
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"></script>
+
+    <script>
+    // Theme Toggle - Global
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const htmlElement = document.documentElement;
+
+        if (themeToggle && themeIcon) {
+            // Check for saved theme preference or default to 'light'
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            htmlElement.setAttribute('data-theme', currentTheme);
+            updateThemeIcon(currentTheme);
+
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            if (themeIcon) {
+                themeIcon.className = theme === 'dark' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+            }
+        }
+
+        // Navbar scroll effect
+        const navbar = document.querySelector('.navbar');
+        if (navbar) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            // Trigger once on load
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            }
+        }
+    });
+    </script>
+
+</body>
+
+</html>

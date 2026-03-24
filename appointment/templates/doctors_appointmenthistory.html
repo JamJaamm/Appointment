@@ -1,0 +1,302 @@
+{% extends 'doctor_header_footer.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Appointment History{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0 text-primary"><i class="fas fa-history me-2"></i>Appointment History</h3>
+    <div class="d-flex gap-2">
+      <input id="qName" class="form-control form-control-sm" placeholder="Filter by patient name" style="min-width:220px;">
+      <input id="fromDate" type="date" class="form-control form-control-sm">
+      <input id="toDate" type="date" class="form-control form-control-sm">
+      <select id="qStatus" class="form-select form-select-sm">
+        <option value="">All status</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="upcoming">Upcoming</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Info Banner -->
+  <div class="alert alert-info mb-4">
+    <i class="fas fa-info-circle me-2"></i>
+    Only appointments approved by the admin are shown here.
+  </div>
+
+  <div class="table-responsive d-none d-md-block">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Date & time</th>
+          <th>Type / Reason</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="apptTable">
+        {% for appt in appointments %}
+        <tr class="appt-row" 
+            data-patient="{{ appt.patient.user.get_full_name|default:appt.patient.user.username|lower }}" 
+            data-date="{{ appt.date|date:'Y-m-d' }}" 
+            data-status="{{ appt.status }}"
+            onclick="openAppointmentModal({{ appt.id }}, '{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}', '{{ appt.patient.user.email }}', '{{ appt.date|date:"Y-m-d\\TH:i" }}', '{{ appt.status }}', '{{ appt.reason|escapejs }}', '{{ appt.notes|escapejs }}', '{{ appt.reschedule_reason|escapejs }}', {{ appt.duration }}, '{% if appt.patient.user.userinfo.profile_picture %}{{ appt.patient.user.userinfo.profile_picture.url }}{% endif %}')">
+          <td>
+            <div class="d-flex align-items-center">
+              {% if appt.patient.avatar %}
+                <img src="{{ appt.patient.avatar }}" class="rounded-circle me-3" style="width:48px;height:48px;object-fit:cover;">
+              {% elif appt.patient.user.userinfo.profile_picture and appt.patient.user.userinfo.profile_picture.name %}
+                <img src="{{ appt.patient.user.userinfo.profile_picture.url }}" class="rounded-circle me-3" style="width:48px;height:48px;object-fit:cover;">
+              {% else %}
+                <img src="{% static 'images/default-avatar.png' %}" class="rounded-circle me-3" style="width:48px;height:48px;object-fit:cover;">
+              {% endif %}
+              <div>
+                <div class="fw-bold">{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</div>
+                <div class="text-muted small">{{ appt.patient.user.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="fw-semibold">{{ appt.date|date:'M d, Y' }} · {{ appt.date|date:'H:i' }}</div>
+            <div class="text-muted small">Duration: {{ appt.duration }} min</div>
+          </td>
+          <td>
+            <div class="text-truncate" style="max-width: 200px;" title="{{ appt.reason }}">
+              {{ appt.reason|default:"—" }}
+            </div>
+          </td>
+          <td>
+            <span class="badge {% if appt.status == 'completed' %}bg-success{% elif appt.status == 'cancelled' %}bg-danger{% elif appt.status == 'pending' %}bg-warning text-dark{% elif appt.status == 'approved' %}bg-primary{% else %}bg-secondary{% endif %}">
+              {{ appt.get_status_display }}
+            </span>
+          </td>
+          <td>
+            <div class="text-truncate small text-muted" style="max-width: 200px;" title="{{ appt.notes }}">
+              {{ appt.notes|default:"—" }}
+            </div>
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); openAppointmentModal({{ appt.id }}, '{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}', '{{ appt.patient.user.email }}', '{{ appt.date|date:"Y-m-d\\TH:i" }}', '{{ appt.status }}', '{{ appt.reason|escapejs }}', '{{ appt.notes|escapejs }}', '{{ appt.reschedule_reason|escapejs }}', {{ appt.duration }}, '{% if appt.patient.user.userinfo.profile_picture %}{{ appt.patient.user.userinfo.profile_picture.url }}{% endif %}')">
+              <i class="fas fa-eye me-1"></i>View
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted">No appointments found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile: cards -->
+  <div class="d-md-none">
+    <div id="apptCards">
+      {% for appt in appointments %}
+      <div class="card mb-3 appt-row" 
+           data-patient="{{ appt.patient.user.get_full_name|default:appt.patient.user.username|lower }}" 
+           data-date="{{ appt.date|date:'Y-m-d' }}" 
+           data-status="{{ appt.status }}"
+           onclick="openAppointmentModal({{ appt.id }}, '{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}', '{{ appt.patient.user.email }}', '{{ appt.date|date:"Y-m-d\\TH:i" }}', '{{ appt.status }}', '{{ appt.reason|escapejs }}', '{{ appt.notes|escapejs }}', '{{ appt.reschedule_reason|escapejs }}', {{ appt.duration }}, '{% if appt.patient.user.userinfo.profile_picture %}{{ appt.patient.user.userinfo.profile_picture.url }}{% endif %}')">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            {% if appt.patient.avatar %}
+                <img src="{{ appt.patient.avatar }}" class="rounded-circle me-3" style="width:56px;height:56px;object-fit:cover;">
+            {% elif appt.patient.user.userinfo.profile_picture and appt.patient.user.userinfo.profile_picture.name %}
+                <img src="{{ appt.patient.user.userinfo.profile_picture.url }}" class="rounded-circle me-3" style="width:56px;height:56px;object-fit:cover;">
+            {% else %}
+                <img src="{% static 'images/default-avatar.png' %}" class="rounded-circle me-3" style="width:56px;height:56px;object-fit:cover;">
+            {% endif %}
+            <div class="flex-grow-1">
+              <div class="fw-bold">{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</div>
+              <div class="small text-muted">{{ appt.date|date:'M d, Y H:i' }}</div>
+              <div class="small text-muted mt-1">
+                <i class="fas fa-stethoscope me-1"></i>{{ appt.reason|default:"No reason specified" }}
+              </div>
+            </div>
+            <div class="text-end">
+              <span class="badge {% if appt.status == 'completed' %}bg-success{% elif appt.status == 'cancelled' %}bg-danger{% elif appt.status == 'pending' %}bg-warning text-dark{% elif appt.status == 'approved' %}bg-primary{% else %}bg-secondary{% endif %}">
+                {{ appt.get_status_display }}
+              </span>
+            </div>
+          </div>
+          {% if appt.notes %}
+          <div class="mt-2 text-muted small">
+            <i class="fas fa-file-alt me-1"></i>{{ appt.notes|truncatechars:50 }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+        <p class="text-muted">No appointments found.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Appointment Detail Modal -->
+<div class="modal fade" id="appointmentDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-check me-2 text-primary"></i>Appointment Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Content will be injected by JavaScript -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .appt-row { cursor: pointer; transition: background-color 0.2s; }
+  .appt-row:hover { background-color: #f8f9fa; }
+  .badge { font-weight:600; }
+  .detail-row {
+    display: flex;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .detail-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .detail-label {
+    font-weight: 600;
+    color: #6c757d;
+    min-width: 120px;
+  }
+  .detail-value {
+    color: #212529;
+    flex: 1;
+  }
+  .patient-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #0d6efd;
+  }
+</style>
+
+<script>
+  // Client-side filtering for the static list rendered by Django
+  const rows = Array.from(document.querySelectorAll('.appt-row'));
+  const qName = document.getElementById('qName');
+  const fromDate = document.getElementById('fromDate');
+  const toDate = document.getElementById('toDate');
+  const qStatus = document.getElementById('qStatus');
+
+  function applyFilters() {
+    const name = (qName.value || '').trim().toLowerCase();
+    const f = fromDate.value;
+    const t = toDate.value;
+    const status = qStatus.value;
+
+    rows.forEach(el => {
+      const p = el.dataset.patient || '';
+      const d = el.dataset.date || '';
+      const s = el.dataset.status || '';
+      let show = true;
+      if (name && !p.includes(name)) show = false;
+      if (status && s !== status) show = false;
+      if (f && d < f) show = false;
+      if (t && d > t) show = false;
+      el.style.display = show ? '' : 'none';
+    });
+  }
+
+  [qName, fromDate, toDate, qStatus].forEach(i => i && i.addEventListener('input', applyFilters));
+
+  // Open appointment detail modal
+  function openAppointmentModal(id, patientName, patientEmail, dateTime, status, reason, notes, rescheduleReason, duration, avatarUrl) {
+    const modalBody = document.getElementById('modalBody');
+    const date = new Date(dateTime);
+    const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
+    const statusBadgeClass = {
+      'completed': 'bg-success',
+      'cancelled': 'bg-danger',
+      'pending': 'bg-warning text-dark',
+      'approved': 'bg-primary',
+      'reschedule_requested': 'bg-info'
+    }[status] || 'bg-secondary';
+
+    modalBody.innerHTML = `
+      <div class="row">
+        <div class="col-md-4 text-center mb-3 mb-md-0">
+          ${avatarUrl ? 
+            `<img src="${avatarUrl}" class="patient-avatar-large mb-2">` :
+            `<div class="patient-avatar-large mb-2 d-inline-flex align-items-center justify-content-center bg-light">
+              <i class="fas fa-user fa-3x text-primary"></i>
+            </div>`
+          }
+          <h5 class="fw-bold mb-1">${patientName}</h5>
+          <p class="text-muted mb-2">${patientEmail}</p>
+          <span class="badge ${statusBadgeClass}">${status.replace('_', ' ').toUpperCase()}</span>
+        </div>
+        <div class="col-md-8">
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-calendar me-2"></i>Date
+            </div>
+            <div class="detail-value">${dateStr}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-clock me-2"></i>Time
+            </div>
+            <div class="detail-value">${timeStr}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-hourglass-half me-2"></i>Duration
+            </div>
+            <div class="detail-value">${duration} minutes</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-stethoscope me-2"></i>Reason
+            </div>
+            <div class="detail-value">${reason || '<span class="text-muted">Not specified</span>'}</div>
+          </div>
+          ${rescheduleReason ? `
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-sync me-2"></i>Reschedule Reason
+            </div>
+            <div class="detail-value text-danger">${rescheduleReason}</div>
+          </div>
+          ` : ''}
+          <div class="detail-row">
+            <div class="detail-label">
+              <i class="fas fa-file-alt me-2"></i>Notes
+            </div>
+            <div class="detail-value">${notes || '<span class="text-muted">No notes</span>'}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const modal = new bootstrap.Modal(document.getElementById('appointmentDetailModal'));
+    modal.show();
+  }
+</script>
+
+{% endblock content %}

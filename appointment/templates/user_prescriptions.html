@@ -1,0 +1,230 @@
+{% extends "user_header_footer.html" %}
+
+{% load static %}
+{% load humanize %}
+{% block title %}My Prescriptions{% endblock title %}
+
+{% block content %}
+   <style>
+        body { background: #f8f9fa; }
+        .prescription-card { border-radius: 1rem; box-shadow: 0 2px 8px rgba(42,111,209,0.10); background: #fff; padding: 30px; margin-bottom: 20px; }
+        .doctor-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; }
+    </style>
+</head>
+<body>
+    <!-- User Header -->
+    <div class="container py-4">
+        <div class="d-flex align-items-center mb-4 p-3 bg-white shadow-sm rounded" style="gap:1rem;">
+            {% if userinfo.profile_picture %}
+                <img src="{{ userinfo.profile_picture.url }}" alt="User Photo" class="rounded-circle border border-2 border-primary" style="width:64px;height:64px;object-fit:cover;">
+            {% else %}
+                <img src="{% static 'images/avatar.png' %}" alt="User Photo" class="rounded-circle border border-2 border-primary" style="width:64px;height:64px;object-fit:cover;">
+            {% endif %}
+            <div>
+                <h4 class="mb-0 fw-bold text-primary">Welcome, <span id="userName">{{ user.first_name }} {{ user.last_name }}</span></h4>
+                <small class="text-muted"><i class="fas fa-user me-1"></i>Patient Dashboard</small>
+            </div>
+        </div>
+        <!-- Search and Filter -->
+        <div class="row mb-3 g-2">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search by drug, doctor, or notes...">
+            </div>
+            <div class="col-md-3">
+                <input type="date" class="form-control" id="filterDate">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filterStatus">
+                    <option value="">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Expired">Expired</option>
+                </select>
+            </div>
+            <div class="col-md-2 text-end">
+                <button class="btn btn-outline-primary w-100" id="clearFilters"><i class="fas fa-times me-2"></i>Clear</button>
+            </div>
+        </div>
+        <!-- Prescription Cards -->
+        <div class="row g-4" id="prescriptionsCards">
+            <!-- Cards rendered by JS -->
+        </div>
+        <!-- View Modal -->
+        <div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="prescriptionModalLabel">Prescription Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="modalBodyContent">
+                        <!-- Content injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // User info from backend
+        const user = {
+            name: '{{ user.first_name }} {{ user.last_name }}',
+            photo: '{% if userinfo.profile_picture %}{{ userinfo.profile_picture.url }}{% else %}{% static "images/avatar.png" %}{% endif %}'
+        };
+        document.getElementById('userName').textContent = user.name;
+        document.querySelector('.rounded-circle').src = user.photo;
+        
+        // Real prescription data from backend
+        let prescriptions = [
+            {% for prescription in prescriptions %}
+            {
+                id: {{ prescription.id }},
+                drug: '{{ prescription.drug_name|escapejs }}',
+                dosage: '{{ prescription.dosage|escapejs }}',
+                frequency: '{{ prescription.frequency|escapejs }}',
+                duration: '{{ prescription.duration|escapejs }}',
+                doctor: 'Dr. {{ prescription.doctor.get_full_name|default:prescription.doctor.username|escapejs }}',
+                date: '{{ prescription.created_at|date:"Y-m-d" }}',
+                notes: '{{ prescription.instructions|default:""|escapejs }}',
+                status: '{{ prescription.get_status_display|escapejs }}',
+                startDate: '{{ prescription.start_date|date:"Y-m-d" }}',
+                endDate: '{{ prescription.end_date|date:"Y-m-d"|default:"" }}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        function statusBadge(status) {
+            let color = 'secondary';
+            if (status==='Active') color = 'success';
+            else if (status==='Completed') color = 'primary';
+            else if (status==='Expired') color = 'danger';
+            return `<span class="badge bg-${color} px-3 py-2">${status}</span>`;
+        }
+        function renderCards() {
+            const cards = document.getElementById('prescriptionsCards');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filterDate = document.getElementById('filterDate').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            cards.innerHTML = '';
+            
+            const filtered = prescriptions.filter(p => {
+                let match = true;
+                if (search) {
+                    match = (
+                        p.drug.toLowerCase().includes(search) ||
+                        p.doctor.toLowerCase().includes(search) ||
+                        p.notes.toLowerCase().includes(search)
+                    );
+                }
+                if (filterDate) {
+                    match = match && p.date === filterDate;
+                }
+                if (filterStatus) {
+                    match = match && p.status === filterStatus;
+                }
+                return match;
+            });
+            
+            if (filtered.length === 0) {
+                cards.innerHTML = `
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="fas fa-prescription-bottle-alt fa-4x text-muted mb-3" style="opacity: 0.5;"></i>
+                            <h5 class="text-muted">No prescriptions found</h5>
+                            <p class="text-muted">
+                                ${prescriptions.length === 0 ? 'Your doctor hasn\'t prescribed any medications yet.' : 'No prescriptions match your search criteria.'}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            filtered.forEach(p => {
+                cards.innerHTML += `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 h-100" style="border-radius:1rem;">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-pills fa-lg text-primary me-2"></i>
+                                    <h5 class="fw-bold mb-0">${p.drug}</h5>
+                                    <div class="ms-auto">${statusBadge(p.status)}</div>
+                                </div>
+                                <div class="mb-1"><i class="fas fa-capsules me-1 text-info"></i> <strong>Dosage:</strong> ${p.dosage}</div>
+                                <div class="mb-1"><i class="fas fa-clock me-1 text-info"></i> <strong>Frequency:</strong> ${p.frequency}</div>
+                                <div class="mb-1"><i class="fas fa-calendar-alt me-1 text-info"></i> <strong>Duration:</strong> ${p.duration}</div>
+                                <div class="mb-1"><i class="fas fa-user-md me-1 text-info"></i> <strong>Doctor:</strong> ${p.doctor}</div>
+                                <div class="mb-1"><i class="fas fa-calendar me-1 text-info"></i> <strong>Date:</strong> ${p.date}</div>
+                                <div class="mb-2"><i class="fas fa-info-circle me-1 text-info"></i> <strong>Notes:</strong> ${p.notes}</div>
+                            </div>
+                            <div class="d-flex gap-2 mt-2">
+                                <button class="btn btn-outline-info btn-sm" onclick="viewPrescription(${p.id})"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn btn-outline-success btn-sm" onclick="downloadPDF(${p.id})"><i class="fas fa-file-pdf"></i> PDF</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="requestRefill(${p.id})"><i class="fas fa-sync"></i> Request Refill</button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="messageDoctor(${p.id})"><i class="fas fa-envelope"></i> Message Doctor</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+        renderCards();
+        document.getElementById('searchInput').addEventListener('input', renderCards);
+        document.getElementById('filterDate').addEventListener('input', renderCards);
+        document.getElementById('filterStatus').addEventListener('change', renderCards);
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterDate').value = '';
+            document.getElementById('filterStatus').value = '';
+            renderCards();
+        });
+        function viewPrescription(id) {
+            const p = prescriptions.find(x => x.id === id);
+            if (!p) return;
+            document.getElementById('modalBodyContent').innerHTML = `
+                <div class='mb-3'>
+                    <h5 class='text-primary'>${p.drug}</h5>
+                    <div>${statusBadge(p.status)}</div>
+                </div>
+                <div class='mb-2'><strong>Dosage:</strong> ${p.dosage}</div>
+                <div class='mb-2'><strong>Frequency:</strong> ${p.frequency}</div>
+                <div class='mb-2'><strong>Duration:</strong> ${p.duration}</div>
+                <div class='mb-2'><strong>Doctor:</strong> ${p.doctor}</div>
+                <div class='mb-2'><strong>Prescribed Date:</strong> ${p.date}</div>
+                ${p.startDate ? `<div class='mb-2'><strong>Start Date:</strong> ${p.startDate}</div>` : ''}
+                ${p.endDate ? `<div class='mb-2'><strong>End Date:</strong> ${p.endDate}</div>` : ''}
+                <div class='mb-2'><strong>Instructions:</strong> ${p.notes || 'No additional instructions'}</div>
+            `;
+            new bootstrap.Modal(document.getElementById('prescriptionModal')).show();
+        }
+        function downloadPDF(id) {
+            const p = prescriptions.find(x => x.id === id);
+            if (!p) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text('Prescription', 10, 15);
+            doc.setFontSize(12);
+            doc.text(`Drug: ${p.drug}`, 10, 30);
+            doc.text(`Dosage: ${p.dosage}`, 10, 40);
+            doc.text(`Frequency: ${p.frequency}`, 10, 50);
+            doc.text(`Duration: ${p.duration}`, 10, 60);
+            doc.text(`Doctor: ${p.doctor}`, 10, 70);
+            doc.text(`Date: ${p.date}`, 10, 80);
+            doc.text(`Status: ${p.status}`, 10, 90);
+            doc.text(`Notes: ${p.notes}`, 10, 100);
+            doc.save(`prescription_${p.drug}_${p.date}.pdf`);
+        }
+        function requestRefill(id) {
+            alert('Refill request sent for prescription #' + id);
+        }
+        function messageDoctor(id) {
+            // Redirect to the user message page
+            window.location.href = '/user_message';
+        }
+    </script>
+
+{% endblock content %}

@@ -1,0 +1,23 @@
+{% extends "header_footer.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>Book a Zoom Appointment</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="patient_name">Patient Name</label>
+            <input type="text" class="form-control" id="patient_name" name="patient_name" required>
+        </div>
+        <div class="form-group">
+            <label for="doctor_name">Doctor Name</label>
+            <input type="text" class="form-control" id="doctor_name" name="doctor_name" required>
+        </div>
+        <div class="form-group">
+            <label for="date">Date and Time</label>
+            <input type="datetime-local" class="form-control" id="date" name="date" required>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Book Appointment</button>
+    </form>
+</div>
+{% endblock %}

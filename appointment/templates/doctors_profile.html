@@ -1,0 +1,329 @@
+{% extends "doctor_header_footer.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Doctor Profile{% endblock %}
+
+{% block content %}
+
+<div class="main-content">
+  <div class="container py-4">
+    <!-- Profile Header -->
+    <div class="card mb-4" style="border-radius: 16px;">
+      <div class="card-body p-4">
+        <div class="profile-header d-flex align-items-center gap-4 mb-3 flex-column flex-md-row">
+          {% if userinfo.profile_picture and userinfo.profile_picture.name %}
+          <img id="docPhoto" src="{{ userinfo.profile_picture.url }}" alt="Doctor photo" 
+               class="profile-pic" 
+               style="width: 130px; height: 130px; object-fit: cover; border-radius: 50%; border: 4px solid var(--accent-cream); box-shadow: var(--shadow-md);">
+          {% else %}
+          <img id="docPhoto" src="{% static 'images/avatar.png' %}" alt="Doctor photo" 
+               class="profile-pic" 
+               style="width: 130px; height: 130px; object-fit: cover; border-radius: 50%; border: 4px solid var(--accent-cream); box-shadow: var(--shadow-md);">
+          {% endif %}
+          
+          <div class="flex-grow-1">
+            <h2 id="docName" class="mb-1" style="font-family: var(--font-heading); font-weight: 600; color: var(--text-primary);">
+              {{ user.first_name }} {{ user.last_name }}
+            </h2>
+            <div class="text-muted mb-3" style="font-size: 0.9rem;">
+              {{userinfo.speciality|default:"General"}} • {{userinfo.location|default:"City Hospital"}}
+            </div>
+            
+            <div class="d-flex gap-4 align-items-center flex-wrap mb-3">
+              <div class="d-flex align-items-center gap-2" style="color: var(--text-secondary);">
+                <i class="fas fa-briefcase" style="color: var(--primary-blue);"></i>
+                <span><strong style="color: var(--text-primary);">{{userinfo.yearsOfExperience|default:"0"}}</strong> yrs experience</span>
+              </div>
+              <div class="d-flex align-items-center gap-2" style="color: var(--text-secondary);">
+                <i class="fas fa-envelope" style="color: var(--primary-blue);"></i>
+                <span>{{ user.email }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2" style="color: var(--text-secondary);">
+                <i class="fas fa-phone" style="color: var(--primary-blue);"></i>
+                <span>{{ userinfo.phone_number|default:"—" }}</span>
+              </div>
+            </div>
+            
+            <div class="profile-actions d-flex gap-2 flex-wrap">
+              <a href="{% url 'doctors_patients' %}" class="btn btn-outline-primary" style="border-radius: 8px;">
+                <i class="fas fa-users me-2"></i>View Patient List
+              </a>
+              <a href="{% url 'doctor_editprofile' %}" class="btn btn-outline-secondary" style="border-radius: 8px;">
+                <i class="fas fa-user-edit me-2"></i>Edit Profile
+              </a>
+              <button class="btn btn-primary" id="openAvail" style="border-radius: 8px;">
+                <i class="fas fa-plus me-2"></i>Add Availability Slot
+              </button>
+            </div>
+            
+            <div class="mt-3 d-flex align-items-center gap-2">
+              <div class="star" style="color: #faea73;">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+              </div>
+              <div class="text-muted" style="font-size: 0.875rem;">4.5 • 120 reviews</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs & Content -->
+    <div class="card" style="border-radius: 16px;">
+      <div class="card-body p-4">
+        <ul class="nav nav-tabs" id="docTabs" style="border-bottom: 2px solid var(--border-color);">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#about" 
+                    style="color: var(--primary-blue); border: none; background: transparent; font-weight: 500; padding: 0.75rem 1.5rem;">
+              About
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#appointments"
+                    style="color: var(--text-muted); border: none; background: transparent; font-weight: 500; padding: 0.75rem 1.5rem;">
+              Appointments
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#availability"
+                    style="color: var(--text-muted); border: none; background: transparent; font-weight: 500; padding: 0.75rem 1.5rem;">
+              Availability
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content mt-4">
+          <!-- About Tab -->
+          <div class="tab-pane fade show active" id="about">
+            <div class="row g-4">
+              <div class="col-md-12">
+                <h5 style="font-family: var(--font-heading); color: var(--primary-blue); margin-bottom: 1rem;">Biography</h5>
+                <p class="text-muted" style="line-height: 1.7;">
+                  {{ user.userinfo.bio|default:user.first_name|add:" "|add:user.last_name|add:" is a board-certified physician with years of experience in providing quality healthcare services." }}
+                </p>
+              </div>
+              <div class="col-md-12">
+                <h5 style="font-family: var(--font-heading); color: var(--primary-blue); margin-bottom: 1rem;">Education & Certifications</h5>
+                <ul class="list-unstyled" style="color: var(--text-secondary);">
+                  <li class="mb-2"><i class="fas fa-graduation-cap me-2" style="color: var(--primary-blue);"></i>MD - University X</li>
+                  <li class="mb-2"><i class="fas fa-certificate me-2" style="color: var(--primary-blue);"></i>Fellowship - Hospital Y</li>
+                  <li class="mb-2"><i class="fas fa-award me-2" style="color: var(--primary-blue);"></i>Board Certified - {{ doctor.speciality|default:"General" }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Appointments Tab -->
+          <div class="tab-pane fade" id="appointments">
+            <div class="d-flex mb-4 gap-3">
+              <div class="position-relative" style="max-width: 320px; flex-grow: 1;">
+                <i class="fas fa-search position-absolute" style="left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <input id="apptSearch" class="form-control" placeholder="Search patient or date..."
+                       style="padding-left: 2.5rem; border-radius: 8px;">
+              </div>
+              <select id="apptFilter" class="form-select" style="max-width: 160px; border-radius: 8px;">
+                <option value="">All</option>
+                <option>Upcoming</option>
+                <option>Past</option>
+                <option>Cancelled</option>
+              </select>
+            </div>
+            <div class="table-responsive">
+              <table class="table align-middle table-hover" style="border-radius: 12px; overflow: hidden;">
+                <thead style="background-color: var(--bg-tertiary);">
+                  <tr>
+                    <th style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Patient</th>
+                    <th style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Date</th>
+                    <th style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Time</th>
+                    <th style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Status</th>
+                    <th class="text-end" style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="apptsTbody">
+                  {% if appointments %}
+                    {% for appt in appointments %}
+                    <tr data-patient-id="{{ appt.patient_id }}" data-appt-id="{{ appt.id }}">
+                      <td style="font-weight: 500;">
+                        <a href="{% url 'doctors_patients' %}?patient={{ appt.patient_id }}" style="color: var(--primary-blue);">
+                          {{ appt.patient_name }}
+                        </a>
+                      </td>
+                      <td>{{ appt.date }}</td>
+                      <td>{{ appt.time }}</td>
+                      <td>
+                        <span class='badge' style='background-color: {% if appt.status == "Completed" %}#198754{% elif appt.status == "Cancelled" %}#dc3545{% elif appt.status == "Approved" %}#28a745{% elif appt.status == "Pending" %}#ffc107{% else %}var(--primary-blue){% endif %}; border-radius: 16px; padding: 0.5rem 1rem; color: white;'>
+                          {{ appt.status }}
+                        </span>
+                      </td>
+                      <td class='text-end'>
+                        <a href="{% url 'patient_detail' appt.patient_id %}" class='btn btn-sm btn-outline-primary me-1' style="border-radius: 6px;">View Patient</a>
+                        {% if appt.status == "Pending" %}
+                        <a href="{% url 'approve_appointment' appt.id %}" class='btn btn-sm btn-outline-success me-1' style="border-radius: 6px;">Approve</a>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr><td colspan="5" class="text-center text-muted py-4">No appointments found</td></tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+            <div class="text-end mt-3">
+              <a href="{% url 'doctor_appointments' %}" class="btn btn-outline-primary" style="border-radius: 8px;">
+                <i class="fas fa-list me-2"></i>View All Appointments
+              </a>
+            </div>
+          </div>
+
+          <!-- Availability Tab -->
+          <div class="tab-pane fade" id="availability">
+            <h6 style="font-family: var(--font-heading); color: var(--primary-blue); margin-bottom: 1rem;">Weekly Schedule</h6>
+            <div id="weeklySchedule" class="mb-3" style="color: var(--text-secondary);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Availability Modal -->
+<div class="modal fade" id="addAvailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 16px; border: none;">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+        <h5 class="modal-title" style="font-family: var(--font-heading); color: var(--primary-blue);">
+          <i class="fas fa-calendar-plus me-2"></i>Add Availability Slot
+        </h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addAvailForm">
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">Day of Week</label>
+            <select id="availDay" class="form-select" style="border-radius: 8px;">
+              <option>Monday</option>
+              <option>Tuesday</option>
+              <option>Wednesday</option>
+              <option>Thursday</option>
+              <option>Friday</option>
+              <option>Saturday</option>
+              <option>Sunday</option>
+            </select>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">Start Time</label>
+              <input id="availStart" type="time" class="form-control" required style="border-radius: 8px;">
+            </div>
+            <div class="col-6">
+              <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">End Time</label>
+              <input id="availEnd" type="time" class="form-control" required style="border-radius: 8px;">
+            </div>
+          </div>
+          <div class="text-end mt-4">
+            <button class="btn btn-outline-secondary me-2" type="button" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+            <button class="btn btn-primary" type="submit" style="border-radius: 8px;">
+              <i class="fas fa-plus me-2"></i>Add Slot
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Availability data
+  let availability = {
+    Monday: ['09:00-12:00', '14:00-16:00'],
+    Tuesday: ['10:00-13:00'],
+    Wednesday: [],
+    Thursday: ['09:00-12:00'],
+    Friday: ['09:00-11:00']
+  };
+
+  function renderAvailability() {
+    const el = document.getElementById('weeklySchedule');
+    el.innerHTML = '';
+    for (const day of ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']) {
+      const slots = availability[day] || [];
+      const row = document.createElement('div');
+      row.className = 'mb-3 p-3';
+      row.style.cssText = 'background-color: var(--bg-secondary); border-radius: 8px;';
+      row.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <strong style="color: var(--text-primary);">${day}</strong>
+          <div>${slots.length ? slots.map(s => `<span class='badge me-1 mb-1' style="background-color: var(--accent-cream); color: var(--primary-blue); padding: 0.375rem 0.75rem; border-radius: 16px;">${s}</span>`).join('') : '<span class="text-muted">No availability</span>'}</div>
+        </div>
+      `;
+      el.appendChild(row);
+    }
+  }
+
+  document.getElementById('openAvail').addEventListener('click', () => {
+    new bootstrap.Modal(document.getElementById('addAvailModal')).show();
+  });
+
+  document.getElementById('addAvailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const day = document.getElementById('availDay').value;
+    const start = document.getElementById('availStart').value;
+    const end = document.getElementById('availEnd').value;
+
+    if (!availability[day]) availability[day] = [];
+    availability[day].push(`${start}-${end}`);
+
+    renderAvailability();
+    bootstrap.Modal.getInstance(document.getElementById('addAvailModal')).hide();
+  });
+
+  // Tab styling
+  document.querySelectorAll('#docTabs .nav-link').forEach(link => {
+    link.addEventListener('click', function() {
+      document.querySelectorAll('#docTabs .nav-link').forEach(l => {
+        l.style.color = 'var(--text-muted)';
+      });
+      this.style.color = 'var(--primary-blue)';
+    });
+  });
+
+  // Appointment search functionality
+  document.getElementById('apptSearch')?.addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#apptsTbody tr[data-appt-id]');
+    rows.forEach(row => {
+      const patient = row.querySelector('td:first-child').textContent.toLowerCase();
+      const date = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+      if (patient.includes(query) || date.includes(query)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+
+  // Appointment filter functionality
+  document.getElementById('apptFilter')?.addEventListener('change', function() {
+    const filter = this.value;
+    const rows = document.querySelectorAll('#apptsTbody tr[data-appt-id]');
+    rows.forEach(row => {
+      const statusBadge = row.querySelector('.badge');
+      const status = statusBadge?.textContent.trim();
+      if (!filter || status === filter) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+
+  renderAvailability();
+</script>
+
+{% endblock %}

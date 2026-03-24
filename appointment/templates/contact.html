@@ -1,0 +1,867 @@
+{% extends "header_footer.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Contact Us{% endblock title %}
+
+{% block content %}
+
+<style>
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144;600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ========================================
+   CSS Variables - Light Mode (Default)
+   ======================================== */
+:root {
+  --primary-blue: #0070a0;
+  --primary-blue-dark: #00577c;
+  --primary-blue-soft: #2c90c9;
+  --primary-blue-light: #1b9cca;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f9fa;
+  --bg-tertiary: #cce5f3;
+
+  --text-primary: #1f1f1f;
+  --text-secondary: #33383f;
+  --text-muted: #626a72;
+  --text-light: #99a4af;
+
+  --border-color: #dee5eb;
+  --border-light: #c2cdd8;
+
+  --accent-cream: #cce5f3;
+  --accent-yellow: #faea73;
+  --accent-pink: #f7cedc;
+  --accent-cyan: #cceff6;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12);
+
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* ========================================
+   Dark Mode Variables
+   ======================================== */
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --border-color: #334155;
+  --border-light: #475569;
+
+  --accent-cream: #1e3a5f;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+/* ========================================
+   Custom Utility Classes
+   ======================================== */
+.section-padding {
+  padding: 5rem 0;
+}
+
+@media (min-width: 992px) {
+  .section-padding {
+    padding: 7.5rem 0;
+  }
+}
+
+.label-small {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-blue);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .label-small {
+  color: var(--primary-blue-soft);
+}
+
+.text-muted-custom {
+  color: var(--text-muted) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* ========================================
+   Hero Section
+   ======================================== */
+.contact-hero {
+  background: linear-gradient(166deg, var(--bg-tertiary) 4%, var(--bg-secondary) 56%, var(--bg-primary) 56%);
+  padding: 6rem 0 4rem;
+  text-align: center;
+}
+
+[data-theme="dark"] .contact-hero {
+  background: linear-gradient(166deg, #1e3a5f 4%, #0f172a 56%, #0f172a 56%);
+}
+
+.contact-hero-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .contact-hero-title {
+  color: var(--primary-blue-soft);
+}
+
+.contact-hero-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   Contact Info Cards
+   ======================================== */
+.contact-info-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+  height: 100%;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .contact-info-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.contact-info-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.contact-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.contact-info-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.contact-info-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .contact-info-icon {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.contact-info-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.contact-info-content p {
+  color: var(--text-muted);
+  margin-bottom: 0;
+  font-size: 0.9375rem;
+}
+
+.contact-info-content a {
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.contact-info-content a:hover {
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .contact-info-content a:hover {
+  color: var(--primary-blue-soft);
+}
+
+/* Social Links */
+.social-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.social-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.social-links {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.social-link {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  font-size: 1.25rem;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .social-link {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.social-link:hover {
+  background-color: var(--primary-blue);
+  color: white;
+  transform: translateY(-3px);
+}
+
+[data-theme="dark"] .social-link:hover {
+  background-color: var(--primary-blue-soft);
+}
+
+/* ========================================
+   Contact Form
+   ======================================== */
+.contact-form-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2.5rem;
+  height: 100%;
+}
+
+[data-theme="dark"] .contact-form-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.form-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.form-control {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .form-control {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 112, 160, 0.1);
+}
+
+.form-control::placeholder {
+  color: var(--text-light);
+}
+
+textarea.form-control {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.submit-btn {
+  background-color: var(--primary-blue);
+  color: white;
+  padding: 0.875rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.submit-btn:hover {
+  background-color: var(--primary-blue-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="dark"] .submit-btn:hover {
+  background-color: var(--primary-blue-soft);
+}
+
+/* ========================================
+   Map Section
+   ======================================== */
+.map-section {
+  background-color: var(--bg-secondary);
+}
+
+.map-wrapper {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.map-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+/* ========================================
+   FAQ Section
+   ======================================== */
+.faq-section {
+  background-color: var(--bg-primary);
+}
+
+.faq-item {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .faq-item {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.faq-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.faq-question {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: none;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-body);
+}
+
+.faq-icon {
+  font-size: 1.25rem;
+  color: var(--primary-blue);
+  transition: transform var(--transition-fast);
+}
+
+[data-theme="dark"] .faq-icon {
+  color: var(--primary-blue-soft);
+}
+
+.faq-item.active .faq-icon {
+  transform: rotate(45deg);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--transition-normal);
+}
+
+.faq-item.active .faq-answer {
+  max-height: 300px;
+}
+
+.faq-answer-content {
+  padding: 0 1.5rem 1.25rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* ========================================
+   CTA Section
+   ======================================== */
+.cta-section {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.cta-title {
+  color: white;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-white {
+  background-color: white;
+  color: var(--primary-blue);
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  transition: all var(--transition-fast);
+  display: inline-block;
+}
+
+.btn-white:hover {
+  background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   Scroll Animations
+   ======================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .section-padding {
+    padding: 3rem 0;
+  }
+  
+  .contact-form-card {
+    padding: 1.5rem;
+  }
+  
+  .contact-info-card {
+    padding: 1.5rem;
+  }
+}
+</style>
+
+<!-- ========================================
+   Hero Section
+   ======================================== -->
+<section class="contact-hero">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <span class="label-small reveal">Get in Touch</span>
+        <h1 class="contact-hero-title reveal stagger-1">We're Here to Help</h1>
+        <p class="contact-hero-subtitle reveal stagger-2">
+          Have questions? We're here to answer your questions and assist you with appointments.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Contact Info + Form Section
+   ======================================== -->
+<section class="section-padding">
+  <div class="container">
+    <div class="row g-4">
+      <!-- Contact Information -->
+      <div class="col-lg-5">
+        <div class="contact-info-card reveal">
+          <h3 class="h4 fw-bold mb-4">Contact Information</h3>
+          
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <i class="bi bi-geo-alt"></i>
+            </div>
+            <div class="contact-info-content">
+              <h4>Our Location</h4>
+              <p>123 Medical Street, Health City, HC 12345</p>
+            </div>
+          </div>
+          
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <i class="bi bi-telephone"></i>
+            </div>
+            <div class="contact-info-content">
+              <h4>Phone Number</h4>
+              <p><a href="tel:+1234567890">(123) 456-7890</a></p>
+            </div>
+          </div>
+          
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <i class="bi bi-envelope"></i>
+            </div>
+            <div class="contact-info-content">
+              <h4>Email Address</h4>
+              <p><a href="mailto:info@medicare.com">info@medicare.com</a></p>
+            </div>
+          </div>
+          
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <i class="bi bi-clock"></i>
+            </div>
+            <div class="contact-info-content">
+              <h4>Working Hours</h4>
+              <p>Mon - Fri: 8:00 AM - 8:00 PM<br>Sat - Sun: 9:00 AM - 5:00 PM</p>
+            </div>
+          </div>
+          
+          <div class="social-section">
+            <h4 class="social-title">Follow Us</h4>
+            <div class="social-links">
+              <a href="#" class="social-link" aria-label="Facebook">
+                <i class="bi bi-facebook"></i>
+              </a>
+              <a href="#" class="social-link" aria-label="Twitter">
+                <i class="bi bi-twitter-x"></i>
+              </a>
+              <a href="#" class="social-link" aria-label="Instagram">
+                <i class="bi bi-instagram"></i>
+              </a>
+              <a href="#" class="social-link" aria-label="LinkedIn">
+                <i class="bi bi-linkedin"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contact Form -->
+      <div class="col-lg-7">
+        <div class="contact-form-card reveal">
+          <h2 class="form-title">Send Us a Message</h2>
+          <p class="form-subtitle">Fill out the form below and we'll get back to you within 24 hours.</p>
+          
+          <form method="post" action="{% url 'contact' %}">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="John Doe" required>
+              </div>
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="john@example.com" required>
+              </div>
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+              </div>
+              <div class="col-md-6">
+                <label for="subject" class="form-label">Subject</label>
+                <select class="form-control" id="subject" name="subject" required>
+                  <option value="">Select a subject</option>
+                  <option value="appointment">Appointment Inquiry</option>
+                  <option value="billing">Billing Question</option>
+                  <option value="medical">Medical Question</option>
+                  <option value="feedback">Feedback</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="message" class="form-label">Message</label>
+                <textarea class="form-control" id="message" name="message" rows="5" placeholder="Write your message here..." required></textarea>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="submit-btn">
+                  Send Message
+                  <i class="bi bi-send"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Map Section
+   ======================================== -->
+<section class="section-padding map-section">
+  <div class="container">
+    <h2 class="map-title reveal">Find Us on the Map</h2>
+    <div class="map-wrapper reveal">
+      <div class="ratio ratio-16x9">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.835434509456!2d144.95373531531666!3d-37.8162792797516!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf0727c283b49cf22!2sMedical%20Center!5e0!3m2!1sen!2sng!4v1695200000000"
+          width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   FAQ Section
+   ======================================== -->
+<section class="section-padding faq-section">
+  <div class="container">
+    <div class="text-center mb-5 reveal">
+      <span class="label-small">FAQ</span>
+      <h2 class="mb-3">Frequently Asked Questions</h2>
+      <p class="text-muted-custom" style="max-width: 700px; margin: 0 auto;">
+        Quick answers to common questions about our services.
+      </p>
+    </div>
+    
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="faq-item reveal">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            How do I book an appointment?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-content">
+              Booking an appointment is easy! Simply click on "Book Appointment" on our homepage, 
+              select your preferred doctor and time slot, fill in your details, and confirm. 
+              You'll receive an email confirmation instantly.
+            </div>
+          </div>
+        </div>
+        
+        <div class="faq-item reveal">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Do you accept insurance?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-content">
+              Yes, we accept most major insurance plans. Please contact us directly or check 
+              with your insurance provider to confirm coverage. We also offer self-pay options 
+              with transparent pricing.
+            </div>
+          </div>
+        </div>
+        
+        <div class="faq-item reveal">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Can I reschedule or cancel my appointment?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-content">
+              Absolutely! You can reschedule or cancel your appointment up to 24 hours before 
+              the scheduled time through your patient portal or by contacting our support team.
+            </div>
+          </div>
+        </div>
+        
+        <div class="faq-item reveal">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Do you offer telemedicine consultations?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-content">
+              Yes! We offer secure video consultations for many types of appointments. 
+              When booking, select the "Video Consultation" option if available for your 
+              chosen doctor.
+            </div>
+          </div>
+        </div>
+        
+        <div class="faq-item reveal">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            How can I access my medical records?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-content">
+              You can access your medical records securely through your patient portal. 
+              Log in with your credentials and navigate to "Medical Records" to view 
+              your history, test results, and prescriptions.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   CTA Section
+   ======================================== -->
+<section class="cta-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <h2 class="cta-title reveal">Need Immediate Assistance?</h2>
+        <p class="cta-subtitle reveal stagger-1">
+          For urgent medical concerns, please call our emergency line or visit the nearest hospital.
+        </p>
+        <div class="reveal stagger-2">
+          <a href="tel:+1234567890" class="btn-white">
+            <i class="bi bi-telephone me-2"></i>Call Now
+          </a>
+          <a href="{% url 'book_appointment' %}" class="btn-white" style="background-color: transparent; border: 2px solid white; margin-left: 0.5rem;">
+            Book Appointment
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Scroll reveal animation
+function reveal() {
+  var reveals = document.querySelectorAll(".reveal");
+  
+  reveals.forEach(function(element) {
+    var windowHeight = window.innerHeight;
+    var elementTop = element.getBoundingClientRect().top;
+    var elementVisible = 150;
+    
+    if (elementTop < windowHeight - elementVisible) {
+      element.classList.add("active");
+    }
+  });
+}
+
+window.addEventListener("scroll", reveal);
+reveal();
+
+// FAQ toggle
+function toggleFaq(button) {
+  const faqItem = button.parentElement;
+  const isActive = faqItem.classList.contains('active');
+  
+  // Close all FAQ items
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Open clicked item if it wasn't already active
+  if (!isActive) {
+    faqItem.classList.add('active');
+  }
+}
+</script>
+
+{% endblock content %}

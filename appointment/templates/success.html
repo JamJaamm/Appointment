@@ -1,0 +1,17 @@
+{% extends "header_footer.html" %}
+
+{% block content %}
+<div class="container text-center my-5 d-flex justify-content-center align-items-center" style="height: 60vh;">
+    <div>
+        <h1 class="text-success">Success!</h1>
+        <p class="lead">{{ message }}</p>
+        <p>You will be redirected automatically in 5 seconds. If not, <a href="{{ redirect_url }}">click here</a>.</p>
+    </div>
+</div>
+
+<script>
+    setTimeout(function() {
+        window.location.href = "{{ redirect_url }}";
+    }, 5000);
+</script>
+{% endblock %}

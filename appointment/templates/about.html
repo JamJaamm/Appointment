@@ -1,0 +1,884 @@
+{% extends "header_footer.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}About{% endblock title %}
+
+{% block content %}
+
+<style>
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144;600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ========================================
+   CSS Variables - Light Mode (Default)
+   ======================================== */
+:root {
+  /* Primary Colors */
+  --primary-blue: #0070a0;
+  --primary-blue-dark: #00577c;
+  --primary-blue-soft: #2c90c9;
+  --primary-blue-light: #1b9cca;
+
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f9fa;
+  --bg-tertiary: #cce5f3;
+
+  /* Text Colors */
+  --text-primary: #1f1f1f;
+  --text-secondary: #33383f;
+  --text-muted: #626a72;
+  --text-light: #99a4af;
+
+  /* Border Colors */
+  --border-color: #dee5eb;
+  --border-light: #c2cdd8;
+
+  /* Accent Colors */
+  --accent-cream: #cce5f3;
+  --accent-yellow: #faea73;
+  --accent-pink: #f7cedc;
+  --accent-cyan: #cceff6;
+
+  /* Shadow */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12);
+
+  /* Typography */
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* ========================================
+   Dark Mode Variables
+   ======================================== */
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --border-color: #334155;
+  --border-light: #475569;
+
+  --accent-cream: #1e3a5f;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-fast);
+}
+
+/* ========================================
+   Custom Utility Classes
+   ======================================== */
+.section-padding {
+  padding: 5rem 0;
+}
+
+@media (min-width: 992px) {
+  .section-padding {
+    padding: 7.5rem 0;
+  }
+}
+
+.label-small {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-blue);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .label-small {
+  color: var(--primary-blue-soft);
+}
+
+.text-muted-custom {
+  color: var(--text-muted) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-tertiary-custom {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* ========================================
+   About Hero Section
+   ======================================== */
+.about-hero {
+  background: linear-gradient(166deg, var(--bg-tertiary) 4%, var(--bg-secondary) 56%, var(--bg-primary) 56%);
+  padding: 6rem 0 4rem;
+}
+
+[data-theme="dark"] .about-hero {
+  background: linear-gradient(166deg, #1e3a5f 4%, #0f172a 56%, #0f172a 56%);
+}
+
+.about-hero-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .about-hero-title {
+  color: var(--primary-blue-soft);
+}
+
+.about-hero-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   Mission & Vision Cards
+   ======================================== */
+.mission-vision-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2.5rem;
+  height: 100%;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .mission-vision-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.mission-vision-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.mission-vision-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  color: var(--primary-blue);
+  font-size: 1.5rem;
+  transition: transform var(--transition-fast);
+}
+
+[data-theme="dark"] .mission-vision-icon {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.mission-vision-card:hover .mission-vision-icon {
+  transform: scale(1.1);
+}
+
+.mission-vision-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.mission-vision-text {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Feature Cards
+   ======================================== */
+.feature-card {
+  padding: 2rem;
+  height: 100%;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .feature-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.feature-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.feature-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  color: var(--primary-blue);
+  transition: transform var(--transition-fast);
+}
+
+[data-theme="dark"] .feature-icon-wrapper {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.feature-card:hover .feature-icon-wrapper {
+  transform: scale(1.1);
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.feature-description {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Values Section
+   ======================================== */
+.values-section {
+  background-color: var(--bg-secondary);
+}
+
+.value-item {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.value-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+[data-theme="dark"] .value-icon {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.value-content h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.value-content p {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Stats Section
+   ======================================== */
+.stats-section {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  padding: 4rem 0;
+}
+
+.stat-box {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-heading);
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Team Section
+   ======================================== */
+.team-card {
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .team-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.team-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.team-image-wrapper {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  border: 4px solid var(--accent-cream);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .team-image-wrapper {
+  border-color: var(--accent-cream);
+}
+
+.team-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.team-role {
+  color: var(--primary-blue);
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+[data-theme="dark"] .team-role {
+  color: var(--primary-blue-soft);
+}
+
+.team-bio {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ========================================
+   CTA Section
+   ======================================== */
+.cta-section {
+  background-color: var(--bg-tertiary);
+  padding: 4rem 0;
+  text-align: center;
+}
+
+[data-theme="dark"] .cta-section {
+  background-color: var(--bg-secondary);
+}
+
+.cta-title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ========================================
+   Scroll Animations
+   ======================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+
+<!-- ========================================
+   About Hero Section
+   ======================================== -->
+<section class="about-hero">
+  <div class="container">
+    <div class="row justify-content-center text-center">
+      <div class="col-lg-8">
+        <span class="label-small reveal">About MediCare</span>
+        <h1 class="about-hero-title reveal stagger-1">Transforming Healthcare, One Patient at a Time</h1>
+        <p class="about-hero-subtitle reveal stagger-2">
+          A simple, modern platform that connects patients with qualified doctors — fast, secure, and easy to use.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Mission & Vision Section
+   ======================================== -->
+<section class="section-padding">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="mission-vision-card reveal stagger-1">
+          <div class="mission-vision-icon">
+            <i class="bi bi-bullseye"></i>
+          </div>
+          <h2 class="mission-vision-title">Our Mission</h2>
+          <p class="mission-vision-text">
+            To make healthcare accessible, efficient, and patient-centered by leveraging technology 
+            to bridge the gap between patients and healthcare providers. We strive to simplify the 
+            healthcare journey for everyone involved.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="mission-vision-card reveal stagger-2">
+          <div class="mission-vision-icon">
+            <i class="bi bi-eye"></i>
+          </div>
+          <h2 class="mission-vision-title">Our Vision</h2>
+          <p class="mission-vision-text">
+            To be the leading digital healthcare platform that empowers patients and doctors 
+            with seamless connectivity, secure data management, and innovative tools that 
+            enhance the quality of care delivery.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   What We Do Section
+   ======================================== -->
+<section class="section-padding bg-secondary-custom">
+  <div class="container">
+    <div class="text-center mb-5 reveal">
+      <span class="label-small">What We Do</span>
+      <h2 class="mb-3">Comprehensive Healthcare Solutions</h2>
+      <p class="text-muted-custom" style="max-width: 700px; margin: 0 auto;">
+        MediCare helps patients find doctors, book appointments online, and manage visits — 
+        all from one place. Doctors get a clean dashboard to manage schedules, view patient 
+        records, and communicate securely.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card reveal stagger-1">
+          <div class="feature-icon-wrapper">
+            <i class="bi bi-search" style="font-size: 1.5rem;"></i>
+          </div>
+          <h3 class="feature-title">Find Doctors</h3>
+          <p class="feature-description">
+            Search and compare doctors by specialty, location, and patient reviews.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card reveal stagger-2">
+          <div class="feature-icon-wrapper">
+            <i class="bi bi-calendar-check" style="font-size: 1.5rem;"></i>
+          </div>
+          <h3 class="feature-title">Book Appointments</h3>
+          <p class="feature-description">
+            Book available appointment slots in seconds with instant confirmation.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card reveal stagger-3">
+          <div class="feature-icon-wrapper">
+            <i class="bi bi-file-earmark-medical" style="font-size: 1.5rem;"></i>
+          </div>
+          <h3 class="feature-title">Manage Records</h3>
+          <p class="feature-description">
+            Access and manage your health records securely in one place.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card reveal stagger-4">
+          <div class="feature-icon-wrapper">
+            <i class="bi bi-chat-dots" style="font-size: 1.5rem;"></i>
+          </div>
+          <h3 class="feature-title">Secure Communication</h3>
+          <p class="feature-description">
+            Communicate with doctors and receive follow-up notes securely.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Benefits Section
+   ======================================== -->
+<section class="section-padding">
+  <div class="container">
+    <div class="row align-items-center gy-5">
+      <div class="col-lg-6">
+        <div class="reveal">
+          <span class="label-small">For Patients</span>
+          <h2 class="mb-4">How It Helps You</h2>
+          <p class="text-muted-custom mb-4">
+            We've designed MediCare to make your healthcare experience as smooth and 
+            stress-free as possible. Here's what you can expect.
+          </p>
+
+          <div class="value-item">
+            <div class="value-icon">
+              <i class="bi bi-check-lg"></i>
+            </div>
+            <div class="value-content">
+              <h4>Faster Bookings</h4>
+              <p>Book appointments in seconds without phone calls or waiting.</p>
+            </div>
+          </div>
+
+          <div class="value-item">
+            <div class="value-icon">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="value-content">
+              <h4>Less Waiting Time</h4>
+              <p>Better schedule organization means less time in waiting rooms.</p>
+            </div>
+          </div>
+
+          <div class="value-item">
+            <div class="value-icon">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="value-content">
+              <h4>Secure & Private</h4>
+              <p>Your health data is protected with industry-leading security.</p>
+            </div>
+          </div>
+
+          <div class="value-item">
+            <div class="value-icon">
+              <i class="bi bi-bell"></i>
+            </div>
+            <div class="value-content">
+              <h4>Reminders & Confirmations</h4>
+              <p>Receive confirmations and reminders by email automatically.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <img src="{% static 'images/patient-care.jpg' %}" alt="Patient care" class="img-fluid rounded-4 reveal" 
+             onerror="this.src='{% static 'images/img1.jpg' %}'">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   For Doctors Section
+   ======================================== -->
+<section class="section-padding bg-secondary-custom">
+  <div class="container">
+    <div class="row align-items-center gy-5">
+      <div class="col-lg-6 order-2 order-lg-1">
+        <img src="{% static 'images/doctor-dashboard.jpg' %}" alt="Doctor dashboard" class="img-fluid rounded-4 reveal"
+             onerror="this.src='{% static 'images/gen.jpeg' %}'">
+      </div>
+
+      <div class="col-lg-6 order-1 order-lg-2">
+        <div class="reveal">
+          <span class="label-small">For Doctors</span>
+          <h2 class="mb-4">Empowering Healthcare Providers</h2>
+          <p class="text-muted-custom mb-4">
+            Our platform gives doctors the tools they need to manage their practice 
+            efficiently and provide better patient care.
+          </p>
+
+          <div class="value-item">
+            <div class="value-icon">
+              <i class="bi bi-calendar3"></i>
+            </div>
+            <div class="value-content">
+              <h4>Manage Schedules</h4>
+              <p>View and manage schedules from a single, intuitive dashboard.</p>
+            </div>
+          </div>
+
+          <div class="value-item">
+            <div class="value-icon">
+              <i class="bi bi-people"></i>
+            </div>
+            <div class="value-content">
+              <h4>Patient Records</h4>
+              <p>Access patient basics and appointment history instantly.</p>
+            </div>
+          </div>
+
+          <div class="value-item">
+            <div class="value-icon">
+              <i class="bi bi-envelope"></i>
+            </div>
+            <div class="value-content">
+              <h4>Secure Messaging</h4>
+              <p>Message patients and share follow-up notes securely.</p>
+            </div>
+          </div>
+
+          <div class="value-item">
+            <div class="value-icon">
+              <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="value-content">
+              <h4>Better Organization</h4>
+              <p>Clear records for transparency and continuity of care.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Stats Section
+   ======================================== -->
+<section class="stats-section">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-3 col-6">
+        <div class="stat-box reveal stagger-1">
+          <div class="stat-number">10K+</div>
+          <p class="stat-label">Patients</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-box reveal stagger-2">
+          <div class="stat-number">500+</div>
+          <p class="stat-label">Doctors</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-box reveal stagger-3">
+          <div class="stat-number">50+</div>
+          <p class="stat-label">Specialties</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-box reveal stagger-4">
+          <div class="stat-number">24/7</div>
+          <p class="stat-label">Support</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Our Values Section
+   ======================================== -->
+<section class="section-padding">
+  <div class="container">
+    <div class="text-center mb-5 reveal">
+      <span class="label-small">Our Values</span>
+      <h2 class="mb-3">What Drives Us</h2>
+      <p class="text-muted-custom" style="max-width: 700px; margin: 0 auto;">
+        These core values guide everything we do at MediCare.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card reveal stagger-1">
+          <div class="feature-icon-wrapper">
+            <i class="bi bi-heart" style="font-size: 1.5rem;"></i>
+          </div>
+          <h3 class="feature-title">Patient-Centered</h3>
+          <p class="feature-description">
+            Every decision we make puts patients first, ensuring the best possible care experience.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card reveal stagger-2">
+          <div class="feature-icon-wrapper">
+            <i class="bi bi-shield" style="font-size: 1.5rem;"></i>
+          </div>
+          <h3 class="feature-title">Trust & Security</h3>
+          <p class="feature-description">
+            We maintain the highest standards of data security and privacy protection.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card reveal stagger-3">
+          <div class="feature-icon-wrapper">
+            <i class="bi bi-lightbulb" style="font-size: 1.5rem;"></i>
+          </div>
+          <h3 class="feature-title">Innovation</h3>
+          <p class="feature-description">
+            Continuously improving our platform with the latest healthcare technology.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card reveal stagger-4">
+          <div class="feature-icon-wrapper">
+            <i class="bi bi-people" style="font-size: 1.5rem;"></i>
+          </div>
+          <h3 class="feature-title">Accessibility</h3>
+          <p class="feature-description">
+            Making healthcare accessible to everyone, regardless of location or background.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   CTA Section
+   ======================================== -->
+<section class="cta-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <h2 class="cta-title reveal">Ready to Experience Better Healthcare?</h2>
+        <p class="cta-subtitle reveal stagger-1">
+          Whether you're booking your first appointment or managing dozens a week, 
+          we're here to make the process simple, safe, and human.
+        </p>
+        <div class="reveal stagger-2">
+          <a href="{ % url 'appointment' % }" class="btn btn-primary btn-lg me-3">
+            Book an Appointment
+            <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+          <a href="{% url 'doctors' %}" class="btn btn-outline-primary btn-lg">
+            Find a Doctor
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Scroll reveal animation
+function reveal() {
+  var reveals = document.querySelectorAll(".reveal");
+  
+  reveals.forEach(function(element) {
+    var windowHeight = window.innerHeight;
+    var elementTop = element.getBoundingClientRect().top;
+    var elementVisible = 150;
+    
+    if (elementTop < windowHeight - elementVisible) {
+      element.classList.add("active");
+    }
+  });
+}
+
+window.addEventListener("scroll", reveal);
+// Trigger once on load
+reveal();
+</script>
+
+{% endblock content %}

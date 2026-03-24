@@ -1,0 +1,887 @@
+{% extends "header_footer.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Our Services{% endblock title %}
+
+{% block content %}
+
+<style>
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144;600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ========================================
+   CSS Variables - Light Mode (Default)
+   ======================================== */
+:root {
+  --primary-blue: #0070a0;
+  --primary-blue-dark: #00577c;
+  --primary-blue-soft: #2c90c9;
+  --primary-blue-light: #1b9cca;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f9fa;
+  --bg-tertiary: #cce5f3;
+
+  --text-primary: #1f1f1f;
+  --text-secondary: #33383f;
+  --text-muted: #626a72;
+  --text-light: #99a4af;
+
+  --border-color: #dee5eb;
+  --border-light: #c2cdd8;
+
+  --accent-cream: #cce5f3;
+  --accent-yellow: #faea73;
+  --accent-pink: #f7cedc;
+  --accent-cyan: #cceff6;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12);
+
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* ========================================
+   Dark Mode Variables
+   ======================================== */
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --border-color: #334155;
+  --border-light: #475569;
+
+  --accent-cream: #1e3a5f;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+/* ========================================
+   Custom Utility Classes
+   ======================================== */
+.section-padding {
+  padding: 5rem 0;
+}
+
+@media (min-width: 992px) {
+  .section-padding {
+    padding: 7.5rem 0;
+  }
+}
+
+.label-small {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-blue);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .label-small {
+  color: var(--primary-blue-soft);
+}
+
+.text-muted-custom {
+  color: var(--text-muted) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* ========================================
+   Hero Section
+   ======================================== */
+.services-hero {
+  background: linear-gradient(166deg, var(--bg-tertiary) 4%, var(--bg-secondary) 56%, var(--bg-primary) 56%);
+  padding: 6rem 0 4rem;
+  text-align: center;
+}
+
+[data-theme="dark"] .services-hero {
+  background: linear-gradient(166deg, #1e3a5f 4%, #0f172a 56%, #0f172a 56%);
+}
+
+.services-hero-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .services-hero-title {
+  color: var(--primary-blue-soft);
+}
+
+.services-hero-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   Services Grid
+   ======================================== */
+.service-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+  height: 100%;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+[data-theme="dark"] .service-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.service-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-8px);
+}
+
+.service-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  border-radius: 16px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  font-size: 2rem;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .service-icon-wrapper {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.service-card:hover .service-icon-wrapper {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.service-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.service-description {
+  color: var(--text-muted);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* ========================================
+   Why Choose Us Section
+   ======================================== */
+.why-choose-section {
+  background-color: var(--bg-secondary);
+}
+
+.why-choose-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+  height: 100%;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+[data-theme="dark"] .why-choose-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.why-choose-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.why-choose-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.25rem;
+  border-radius: 12px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  font-size: 1.5rem;
+  transition: transform var(--transition-fast);
+}
+
+[data-theme="dark"] .why-choose-icon {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.why-choose-card:hover .why-choose-icon {
+  transform: scale(1.1);
+}
+
+.why-choose-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.why-choose-text {
+  color: var(--text-muted);
+  margin-bottom: 0;
+  font-size: 0.875rem;
+}
+
+/* ========================================
+   Comparison Table Section
+   ======================================== */
+.comparison-section {
+  background-color: var(--bg-primary);
+}
+
+.comparison-table {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .comparison-table {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.comparison-table thead {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+}
+
+[data-theme="dark"] .comparison-table thead {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-soft) 100%);
+}
+
+.comparison-table thead th {
+  color: white;
+  font-weight: 600;
+  padding: 1.25rem;
+  font-family: var(--font-heading);
+  border: none;
+}
+
+.comparison-table tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.comparison-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.comparison-table tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .comparison-table tbody tr:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.check-icon {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.cross-icon {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.partial-icon {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+/* ========================================
+   Testimonial Section
+   ======================================== */
+.testimonial-section {
+  background-color: var(--bg-secondary);
+}
+
+.testimonial-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2.5rem;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+[data-theme="dark"] .testimonial-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.testimonial-emoji {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.testimonial-text {
+  font-size: 1.25rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.testimonial-author {
+  font-weight: 600;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .testimonial-author {
+  color: var(--primary-blue-soft);
+}
+
+.carousel-indicators [data-bs-target] {
+  background-color: var(--primary-blue);
+}
+
+[data-theme="dark"] .carousel-indicators [data-bs-target] {
+  background-color: var(--primary-blue-soft);
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  background-color: var(--primary-blue);
+  border-radius: 50%;
+  padding: 1rem;
+}
+
+[data-theme="dark"] .carousel-control-prev-icon,
+[data-theme="dark"] .carousel-control-next-icon {
+  background-color: var(--primary-blue-soft);
+}
+
+/* ========================================
+   CTA Section
+   ======================================== */
+.cta-section {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.cta-title {
+  color: white;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-white {
+  background-color: white;
+  color: var(--primary-blue);
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  transition: all var(--transition-fast);
+  display: inline-block;
+}
+
+.btn-white:hover {
+  background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline-white {
+  background-color: transparent;
+  color: white;
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid white;
+  transition: all var(--transition-fast);
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.btn-outline-white:hover {
+  background-color: white;
+  color: var(--primary-blue);
+}
+
+/* ========================================
+   Scroll Animations
+   ======================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+.stagger-6 { transition-delay: 0.6s; }
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .section-padding {
+    padding: 3rem 0;
+  }
+  
+  .service-card {
+    padding: 1.5rem;
+  }
+  
+  .service-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    font-size: 1.5rem;
+  }
+}
+</style>
+
+<!-- ========================================
+   Hero Section
+   ======================================== -->
+<section class="services-hero">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <span class="label-small reveal">What We Offer</span>
+        <h1 class="services-hero-title reveal stagger-1">Comprehensive Healthcare Services</h1>
+        <p class="services-hero-subtitle reveal stagger-2">
+          From general medicine to specialized care, we offer a wide range of medical services 
+          tailored to meet your unique health needs.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Services Grid Section
+   ======================================== -->
+<section class="section-padding">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-1">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-heart-pulse"></i>
+          </div>
+          <h3 class="service-title">General Medicine</h3>
+          <p class="service-description">
+            Comprehensive diagnosis, treatment, and prevention of common illnesses and chronic conditions.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-2">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-activity"></i>
+          </div>
+          <h3 class="service-title">Cardiology</h3>
+          <p class="service-description">
+            Expert care for heart-related conditions with advanced diagnostic and treatment options.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-3">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-person-hearts"></i>
+          </div>
+          <h3 class="service-title">Pediatrics</h3>
+          <p class="service-description">
+            Compassionate healthcare for infants, children, and adolescents from birth to age 18.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-4">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-brain"></i>
+          </div>
+          <h3 class="service-title">Neurology</h3>
+          <p class="service-description">
+            Specialized diagnosis and treatment for disorders of the nervous system and brain.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-5">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-droplet"></i>
+          </div>
+          <h3 class="service-title">Dermatology</h3>
+          <p class="service-description">
+            Expert care for skin, hair, and nail conditions with modern treatment approaches.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-6">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-ribbon"></i>
+          </div>
+          <h3 class="service-title">Oncology</h3>
+          <p class="service-description">
+            Comprehensive cancer care including diagnosis, treatment, and supportive services.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-1">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-person-walking"></i>
+          </div>
+          <h3 class="service-title">Physiotherapy</h3>
+          <p class="service-description">
+            Rehabilitation services to restore movement and function after injury or illness.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-2">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-capsule"></i>
+          </div>
+          <h3 class="service-title">Vaccinations</h3>
+          <p class="service-description">
+            Routine and travel vaccinations for all age groups to prevent infectious diseases.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-4">
+        <div class="service-card reveal stagger-3">
+          <div class="service-icon-wrapper">
+            <i class="bi bi-lungs"></i>
+          </div>
+          <h3 class="service-title">Pulmonology</h3>
+          <p class="service-description">
+            Specialized care for respiratory conditions affecting the lungs and airways.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Why Choose Us Section
+   ======================================== -->
+<section class="section-padding why-choose-section">
+  <div class="container">
+    <div class="text-center mb-5 reveal">
+      <span class="label-small">Why Choose Us</span>
+      <h2 class="mb-3">The MediCare Difference</h2>
+      <p class="text-muted-custom" style="max-width: 700px; margin: 0 auto;">
+        We go beyond traditional clinics to deliver care that's modern, accessible, and people-first.
+      </p>
+    </div>
+    
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-6 col-lg-3">
+        <div class="why-choose-card reveal stagger-1">
+          <div class="why-choose-icon">
+            <i class="bi bi-phone"></i>
+          </div>
+          <h4 class="why-choose-title">Telemedicine Access</h4>
+          <p class="why-choose-text">Book and consult with doctors from anywhere, anytime.</p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-3">
+        <div class="why-choose-card reveal stagger-2">
+          <div class="why-choose-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <h4 class="why-choose-title">Friendly Care Team</h4>
+          <p class="why-choose-text">Our staff is trained to make every visit comfortable.</p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-3">
+        <div class="why-choose-card reveal stagger-3">
+          <div class="why-choose-icon">
+            <i class="bi bi-clock"></i>
+          </div>
+          <h4 class="why-choose-title">Fast Appointments</h4>
+          <p class="why-choose-text">No long waits. Get seen quickly, online or in-person.</p>
+        </div>
+      </div>
+      
+      <div class="col-md-6 col-lg-3">
+        <div class="why-choose-card reveal stagger-4">
+          <div class="why-choose-icon">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <h4 class="why-choose-title">Trusted & Secure</h4>
+          <p class="why-choose-text">Your health data is private and always protected.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Comparison Table Section
+   ======================================== -->
+<section class="section-padding comparison-section">
+  <div class="container">
+    <div class="text-center mb-5 reveal">
+      <span class="label-small">Compare & See</span>
+      <h2 class="mb-3">MediCare vs. Traditional Clinics</h2>
+      <p class="text-muted-custom" style="max-width: 700px; margin: 0 auto;">
+        See how we stack up against conventional healthcare providers.
+      </p>
+    </div>
+    
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="comparison-table reveal">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th style="width: 40%;">Feature</th>
+                <th style="width: 30%;">MediCare</th>
+                <th style="width: 30%;">Traditional Clinic</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Online Booking</strong></td>
+                <td><span class="check-icon">✔</span> 24/7 Access</td>
+                <td><span class="cross-icon">✖</span> Limited Hours</td>
+              </tr>
+              <tr>
+                <td><strong>Telemedicine</strong></td>
+                <td><span class="check-icon">✔</span> Available</td>
+                <td><span class="cross-icon">✖</span> Not Available</td>
+              </tr>
+              <tr>
+                <td><strong>Wait Times</strong></td>
+                <td><span class="check-icon">✔</span> Minimal</td>
+                <td><span class="cross-icon">✖</span> Often Long</td>
+              </tr>
+              <tr>
+                <td><strong>Friendly Staff</strong></td>
+                <td><span class="check-icon">✔</span> Always</td>
+                <td><span class="partial-icon">~</span> Varies</td>
+              </tr>
+              <tr>
+                <td><strong>Secure Records</strong></td>
+                <td><span class="check-icon">✔</span> Encrypted Digital</td>
+                <td><span class="partial-icon">~</span> Often Paper-based</td>
+              </tr>
+              <tr>
+                <td><strong>Follow-up Care</strong></td>
+                <td><span class="check-icon">✔</span> Automated Reminders</td>
+                <td><span class="cross-icon">✖</span> Manual Process</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Testimonial Section
+   ======================================== -->
+<section class="section-padding testimonial-section">
+  <div class="container">
+    <div class="text-center mb-5 reveal">
+      <span class="label-small">Patient Stories</span>
+      <h2 class="mb-3">What Our Patients Say</h2>
+    </div>
+    
+    <div id="testimonialCarousel" class="carousel slide reveal" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <div class="testimonial-card">
+            <div class="testimonial-emoji">😊</div>
+            <p class="testimonial-text">
+              "Booking was so easy and the doctor was super friendly! I got my prescription 
+              within minutes and the whole process was seamless."
+            </p>
+            <p class="testimonial-author">— Sarah, 28</p>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <div class="testimonial-card">
+            <div class="testimonial-emoji">👍</div>
+            <p class="testimonial-text">
+              "No waiting, great care, and I could chat online! This is exactly what 
+              modern healthcare should look like."
+            </p>
+            <p class="testimonial-author">— James, 34</p>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <div class="testimonial-card">
+            <div class="testimonial-emoji">💙</div>
+            <p class="testimonial-text">
+              "I love how easy it is to book and get results! The platform is intuitive 
+              and the doctors are truly caring professionals."
+            </p>
+            <p class="testimonial-author">— Amina, 41</p>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   CTA Section
+   ======================================== -->
+<section class="cta-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <h2 class="cta-title reveal">Ready to Experience Better Healthcare?</h2>
+        <p class="cta-subtitle reveal stagger-1">
+          Book your appointment now and discover the MediCare difference!
+        </p>
+        <div class="reveal stagger-2">
+          <a href="{% url 'book_appointment' %}" class="btn-white">
+            Book Appointment
+            <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+          <a href="{% url 'doctors' %}" class="btn-outline-white">
+            Find a Doctor
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Scroll reveal animation
+function reveal() {
+  var reveals = document.querySelectorAll(".reveal");
+  
+  reveals.forEach(function(element) {
+    var windowHeight = window.innerHeight;
+    var elementTop = element.getBoundingClientRect().top;
+    var elementVisible = 150;
+    
+    if (elementTop < windowHeight - elementVisible) {
+      element.classList.add("active");
+    }
+  });
+}
+
+window.addEventListener("scroll", reveal);
+reveal();
+</script>
+
+{% endblock content %}

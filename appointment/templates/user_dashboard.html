@@ -1,0 +1,264 @@
+{% extends "user_header_footer.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block content %}
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-5 g-0">
+            <div>
+                <h2 class="mb-1" style="font-family: var(--font-heading); font-weight: 600;">Welcome, {{ user.first_name }}!</h2>
+                <p class="text-muted mb-0">Manage your health appointments at a glance</p>
+            </div>
+            <div class="d-flex align-items-center position-relative">
+                <!-- Notification Bell -->
+                <button class="btn btn-light position-relative me-3 notification-bell" id="notificationBell" style="width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-bell fa-lg" style="color: var(--primary-blue);"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="font-size: 0.75rem; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">0</span>
+                </button>
+                <!-- Notification Dropdown -->
+                <div id="notificationDropdown" class="dropdown-menu dropdown-menu-end shadow rounded-3 p-3 animate__animated" style="display:none; z-index:1050;" class="notification-dropdown">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0" style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Notifications</h6>
+                        <button class="btn btn-sm btn-outline-primary" id="markAllReadBtn" style="border-radius: 8px;"><i class="fas fa-check"></i> Mark all read</button>
+                    </div>
+                    <div id="notificationList">
+                        <!-- Notifications will be injected here -->
+                    </div>
+                </div>
+                {% if userinfo.profile_picture and userinfo.profile_picture.name %}
+                <img src="{{ userinfo.profile_picture.url }}" class="profile-img" alt="User">
+                {% else %}
+                <img src="{% static 'images/avatar.png' %}" class="profile-img" alt="User">
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4 g-4">
+            <div class="col-md-3">
+                <div class="card stat-card-primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Upcoming Appointments</h6>
+                                <h3 class="mb-0">{{ stat_upcoming }}</h3>
+                            </div>
+                            <i class="fas fa-calendar-alt fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Completed</h6>
+                                <h3 class="mb-0">{{ stat_completed }}</h3>
+                            </div>
+                            <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Pending</h6>
+                                <h3 class="mb-0">{{ stat_pending }}</h3>
+                            </div>
+                            <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Prescriptions</h6>
+                                <h3 class="mb-0">{{ stat_prescriptions }}</h3>
+                            </div>
+                            <i class="fas fa-prescription-bottle-alt fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="row g-4">
+            <!-- Upcoming Appointments -->
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" style="color: var(--primary-blue);">Upcoming Appointments</h5>
+                        <a href="{% url 'appoinment_history' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                            View All <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="card-body upcoming-appointments">
+                        {% if upcoming_appointments %}
+                            {% for appt in upcoming_appointments %}
+                            <div class="card mb-3 appointment-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-3">
+                                            {% if appt.doctor.userinfo.profile_picture %}
+                                            <img src="{{ appt.doctor.userinfo.profile_picture.url }}" alt="Doctor" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                                            {% else %}
+                                            <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--accent-cream); display: flex; align-items: center; justify-content: center; color: var(--primary-blue);">
+                                                <i class="fas fa-user-md"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-1" style="font-weight: 600;">Dr. {{ appt.doctor.get_full_name }}</h6>
+                                                <p class="mb-1 text-muted" style="font-size: 0.875rem;">
+                                                    {% if appt.doctor.doctor.speciality %}
+                                                        {{ appt.doctor.doctor.speciality }}
+                                                    {% else %}
+                                                        General
+                                                    {% endif %}
+                                                </p>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-calendar-day me-2" style="color: var(--primary-blue); font-size: 0.875rem;"></i>
+                                                    <small class="text-muted">{{ appt.date|date:"M d, Y" }} at {{ appt.date|time:"h:i A" }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge" style="background-color: {% if appt.status == 'approved' %}#28a745{% elif appt.status == 'pending' %}#ffc107{% else %}var(--primary-blue){% endif %}; color: white;">
+                                                {{ appt.get_status_display }}
+                                            </span>
+                                            <div class="mt-2">
+                                                {% if appt.status != 'cancelled' %}
+                                                <a href="{% url 'reschedule_appointment' appt.id %}" class="btn btn-sm btn-outline-primary me-1" style="border-radius: 6px; font-size: 0.75rem;">Reschedule</a>
+                                                <a href="{% url 'cancel_appointment' appt.id %}" class="btn btn-sm btn-outline-danger" style="border-radius: 6px; font-size: 0.75rem;">Cancel</a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-calendar-check fa-3x text-muted mb-3" style="opacity: 0.5;"></i>
+                                <p class="text-muted mb-3">No upcoming appointments</p>
+                                <a href="{% url 'book_appointment' %}" class="btn btn-primary" style="border-radius: 8px;">
+                                    <i class="fas fa-calendar-plus me-2"></i>Book Your First Appointment
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions & Available Doctors -->
+            <div class="col-lg-4">
+                <!-- Quick Actions -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0" style="color: var(--primary-blue);">Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url "book_appointment" %}" class="quick-action-btn" style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%); color: white; border: none;">
+                            <i class="fas fa-calendar-plus" style="color: white;"></i>
+                            <span>Book New Appointment</span>
+                        </a>
+                        <a href="{% url "prescriptions" %}" class="quick-action-btn">
+                            <i class="fas fa-prescription-bottle-alt"></i>
+                            <span>View Prescriptions</span>
+                        </a>
+                        <a href="{% url "user_profile" %}" class="quick-action-btn">
+                            <i class="fas fa-user-edit"></i>
+                            <span>Update Profile</span>
+                        </a>
+                        <a href="{% url "reminders" %}" class="quick-action-btn">
+                            <i class="fas fa-bell"></i>
+                            <span>Set Reminder</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Available Doctors -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" style="color: var(--primary-blue);">Available Doctors</h5>
+                        <a href="{% url 'doctors' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px; padding: 0.25rem 0.75rem; font-size: 0.75rem;">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if available_doctors %}
+                            {% for doctor in available_doctors %}
+                                <div class="doctor-list-item">
+                                    {% if doctor.userinfo.profile_picture and doctor.userinfo.profile_picture.name %}
+                                        <img src="{{ doctor.userinfo.profile_picture.url }}" class="rounded-circle me-3" width="50" alt="Doctor" style="object-fit: cover;">
+                                    {% else %}
+                                        <img src="https://i.pravatar.cc/50?img={{ doctor.id }}" class="rounded-circle me-3" width="50" alt="Doctor">
+                                    {% endif %}
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0" style="font-weight: 600;">Dr. {{ doctor.get_full_name }}</h6>
+                                        <small class="text-muted" style="font-size: 0.75rem;">
+                                            {% if doctor.doctor.speciality %}
+                                                {{ doctor.doctor.speciality }}
+                                            {% else %}
+                                                General
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'book_appointment' %}" class="btn btn-sm" style="background-color: var(--primary-blue); color: white; border-radius: 8px;" title="Book appointment with this doctor">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center py-3">No doctors available at the moment.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Show loading spinner
+        function showLoading() {
+            document.querySelector('.loading-spinner').style.display = 'flex';
+        }
+        function hideLoading() {
+            document.querySelector('.loading-spinner').style.display = 'none';
+        }
+
+        document.querySelectorAll('a').forEach(link => {
+            if (link.getAttribute('href') && !link.getAttribute('href').startsWith('#')) {
+                link.addEventListener('click', function(e) {
+                    if (link.getAttribute('href') === 'index.html') {
+                        e.preventDefault();
+                        showLoading();
+                        setTimeout(function() {
+                            hideLoading();
+                            window.location.href = 'index.html';
+                        }, 1000);
+                    } else {
+                        showLoading();
+                        setTimeout(function() {
+                            hideLoading();
+                            window.location.href = link.getAttribute('href');
+                        }, 1000);
+                    }
+                });
+            }
+        });
+    </script>
+
+{% endblock content %}

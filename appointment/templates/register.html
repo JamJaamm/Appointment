@@ -1,0 +1,408 @@
+{% extends "login_header.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Register{% endblock title %}
+
+{% block content %}
+<style>
+ /* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-blue: #0070a0;
+  --primary-blue-dark: #00577c;
+  --primary-blue-soft: #2c90c9;
+  --primary-blue-light: #1b9cca;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f9fa;
+  --text-primary: #1f1f1f;
+  --text-secondary: #33383f;
+  --text-muted: #626a72;
+  --border-color: #dee5eb;
+  --accent-cream: #cce5f3;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+.register-section {
+    background: url('http://static.photos/medical/1200x630/3') no-repeat center center;
+    background-size: cover;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 3rem 0;
+}
+
+.register-card {
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: none;
+    overflow: hidden;
+}
+
+.register-card .card-body {
+    background-color: var(--bg-primary);
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.register-header h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.register-header p {
+    color: var(--text-muted);
+    margin-bottom: 0;
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(0, 112, 160, 0.15);
+}
+
+.input-group-text {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px 0 0 8px;
+    color: var(--text-muted);
+}
+
+.input-group .form-control {
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+}
+
+.input-group .form-control:focus {
+    border-left: none;
+}
+
+.input-group-text, .input-group .form-control {
+    padding: 0.75rem 1rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-blue-dark);
+    border-color: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-outline-secondary {
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    background-color: transparent;
+    border-radius: 8px;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+.form-check-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+a {
+    color: var(--primary-blue);
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: var(--primary-blue-dark);
+}
+
+.loading-spinner {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 5px solid var(--bg-secondary);
+    border-top: 5px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.form-check {
+    margin-bottom: 1rem;
+}
+
+.user-type-label {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.user-type-label .form-check {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+</style>
+
+<!-- Loading Spinner -->
+<div class="loading-spinner">
+    <div class="spinner"></div>
+</div>
+
+<form action="" method="post" novalidate id="registerForm">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <section class="register-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-7">
+                    <div class="card register-card">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="register-header">
+                                <h3>Create Your Account</h3>
+                                <p>Join our healthcare community today</p>
+                            </div>
+
+                            {% if error %}
+                                <div class="alert alert-danger mb-4">
+                                    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                                </div>
+                            {% endif %}
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="firstName" name="firstName" value="{{ userInput.firstName }}" placeholder="John" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" name="lastName" value="{{ userInput.lastName }}" id="lastName" placeholder="Doe" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" name="email" value="{{ userInput.email }}" id="email" placeholder="your@email.com" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" value="{{ userInput.phone }}" name="phone" id="phone" placeholder="+1 (555) 123-4567" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" name="password" id="password" placeholder="Minimum 8 characters" required minlength="8">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-left: none; border-radius: 0 8px 8px 0;">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem; display: block;">Must be at least 8 characters</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" name="password_confirmation" class="form-control" id="confirmPassword" placeholder="Re-enter password" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Register as</label>
+                                <div class="user-type-label">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="userType" id="patient" value="patient" checked>
+                                        <label class="form-check-label" for="patient">
+                                            <i class="fas fa-user me-1"></i>Patient
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="userType" id="doctor" value="doctor">
+                                        <label class="form-check-label" for="doctor">
+                                            <i class="fas fa-user-md me-1"></i>Doctor
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="terms" required>
+                                <label class="form-check-label" for="terms">I agree to the <a href="{% url 'terms' %}" class="text-decoration-none fw-bold">Terms and Conditions</a></label>
+                            </div>
+                            
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-user-plus me-2"></i>Create Account
+                                </button>
+                            </div>
+                            
+                            <div class="text-center">
+                                <p class="mb-0" style="color: var(--text-muted); font-size: 0.875rem;">
+                                    Already have an account? <a href="{% url 'login' %}{% if next %}?next={{ next }}{% endif %}" class="text-decoration-none fw-bold">Login here</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const icon = this.querySelector('i');
+
+        if (password.type === 'password') {
+            password.type = 'text';
+            confirmPassword.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            password.type = 'password';
+            confirmPassword.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+
+    // Password match validation
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+
+    function validatePassword() {
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity("Passwords don't match");
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+
+    password.onchange = validatePassword;
+    confirmPassword.onkeyup = validatePassword;
+
+    // Show loading spinner
+    function showLoading() {
+        document.querySelector('.loading-spinner').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.querySelector('.loading-spinner').style.display = 'none';
+    }
+
+    // Form submission
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+        const form = this;
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log('Form validation failed');
+        } else {
+            event.preventDefault();
+            console.log('Form submitting...');
+            showLoading();
+            // Submit immediately without delay for debugging
+            setTimeout(function() {
+                hideLoading();
+                console.log('Submitting form now');
+                // Remove the event listener to prevent infinite loop
+                const newForm = form.cloneNode(true);
+                form.parentNode.replaceChild(newForm, form);
+                newForm.submit();
+            }, 500);
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Simulate loading for links
+    document.querySelectorAll('a').forEach(link => {
+        if (link.getAttribute('href') && !link.getAttribute('href').startsWith('#')) {
+            link.addEventListener('click', function(e) {
+                showLoading();
+                setTimeout(function() {
+                    hideLoading();
+                }, 500);
+            });
+        }
+    });
+</script>
+{% endblock content %}

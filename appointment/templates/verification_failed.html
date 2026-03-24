@@ -1,0 +1,52 @@
+{% extends 'header_footer.html' %}
+{% load static %}
+
+{% block title %}Verification failed — MediCare{% endblock title %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="about-section p-4 text-center">
+        <div class="mb-3">
+          <div class="display-4 text-danger"><i class="fas fa-times-circle"></i></div>
+        </div>
+        <h2 class="mb-2">Verification failed</h2>
+        <p class="text-muted mb-3">The verification link is invalid or has expired. Don’t worry — you can request a new link below.</p>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <div class="d-flex justify-content-center gap-2 mb-3">
+          <a href="{% url 'register' %}" class="btn btn-outline-primary">Register</a>
+          <a href="{% url 'login' %}" class="btn btn-primary">Go to Login</a>
+        </div>
+
+        <div class="card p-3 mx-auto" style="max-width:520px; background:#fbfdff;">
+          <p class="mb-3 small text-muted">If you want us to send a fresh verification link, enter the email address used to register and click <strong>Resend verification</strong>.</p>
+
+          <form action="{% url 'resend_verification' %}" method="post" class="row g-2 align-items-center justify-content-center">
+            {% csrf_token %}
+            <div class="col-md-8">
+              {% if email %}
+                <input type="email" name="email" class="form-control" value="{{ email }}" readonly>
+              {% else %}
+                <input type="email" name="email" class="form-control" placeholder="Your email address" required>
+              {% endif %}
+            </div>
+            <div class="col-md-4 d-grid">
+              <button type="submit" class="btn btn-primary">Resend verification</button>
+            </div>
+          </form>
+
+          <p class="mt-3 small text-muted">If you still don’t receive the email, check your spam folder or <a href="mailto:info@medicare.com">contact support</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,156 @@
+{% extends 'user_header_footer.html' %}
+{% load static %}
+
+{% block title %}Online Meeting - MediCare{% endblock title %}
+
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h3 class="mb-3"><i class="fas fa-video"></i> Online Meeting</h3>
+                    <p class="text-muted">Use this page to start or join a Zoom meeting with your doctor. If you are a doctor, use the <strong>Start Meeting</strong> section to create or share a meeting link. If you are a patient, use the <strong>Join Meeting</strong> section below.</p>
+                    <div class="row mt-4">
+                        <div class="col-lg-5">
+                            <div class="mb-3">
+                                <h5>Meeting Details</h5>
+                                <form id="meeting-form">
+                                    <div class="mb-2">
+                                        <label class="form-label">Meeting ID</label>
+                                        <input type="text" name="meeting_id" id="meeting_id" class="form-control" placeholder="Enter Zoom meeting ID or paste full URL">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Passcode (optional)</label>
+                                        <input type="text" name="meeting_pwd" id="meeting_pwd" class="form-control" placeholder="Passcode if required">
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        {% if request.user.is_staff %}
+                                        <button id="start-meeting" type="button" class="btn btn-primary">
+                                            <i class="fas fa-play"></i> Start Meeting (Host)
+                                        </button>
+                                        {% endif %}
+                                        <button id="join-meeting" type="button" class="btn btn-success">
+                                            <i class="fas fa-sign-in-alt"></i> Join Meeting
+                                        </button>
+                                        <button id="open-in-client" type="button" class="btn btn-outline-secondary">
+                                            <i class="fas fa-external-link-alt"></i> Open in Zoom App
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6>Helpful tips</h6>
+                                <ul>
+                                    <li>Copy the full Zoom meeting URL if your doctor shared one (it usually looks like <code>https://zoom.us/j/1234567890?pwd=...</code>).</li>
+                                    <li>If you don't have a meeting link, ask your doctor to share the Meeting ID and Passcode.</li>
+                                    <li>The "Open in Zoom App" button will attempt to open the native Zoom client using the meeting ID. Some browsers may block this and prompt you.</li>
+                                    <li>For the best experience use Chrome or Edge and ensure your microphone and camera are allowed.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-7">
+                            <div class="border rounded p-3 h-100 d-flex flex-column">
+                                <h5>Preview / Video (placeholder)</h5>
+                                <div class="flex-grow-1 d-flex align-items-center justify-content-center bg-light rounded">
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-video fa-3x mb-2"></i>
+                                        <div>Live video will open in Zoom.</div>
+                                        <small class="text-muted">This site launches the Zoom meeting. For embedded SDK integration, an SDK key/secret and server-side signing are required.</small>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h6>Meeting Controls</h6>
+                                    <div class="d-flex gap-2">
+                                        <button id="mute-toggle" class="btn btn-outline-primary btn-sm" disabled>
+                                            <i class="fas fa-microphone-slash"></i> Mute (Zoom controls)
+                                        </button>
+                                        <button id="video-toggle" class="btn btn-outline-primary btn-sm" disabled>
+                                            <i class="fas fa-video"></i> Video (Zoom controls)
+                                        </button>
+                                        <button id="copy-link" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-copy"></i> Copy Meeting URL
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                    <div>
+                        <h6>Security & privacy notes</h6>
+                        <p class="small text-muted">When you join a Zoom meeting from this page we redirect you to Zoom's official web client or native app. We do not capture or record audio/video on this site. If you need recording enabled, ask the meeting host (doctor) to enable it in Zoom settings.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Utility to normalize input into a joinable URL
+    function buildZoomUrl(meetingIdOrUrl, pass) {
+        if (!meetingIdOrUrl) return '';
+        meetingIdOrUrl = meetingIdOrUrl.trim();
+        // If it's already a URL, return as-is (append pass param if provided and missing)
+        try {
+            const url = new URL(meetingIdOrUrl);
+            if (pass) {
+                const params = new URLSearchParams(url.search);
+                if (!params.get('pwd')) params.set('pwd', pass);
+                url.search = params.toString();
+            }
+            return url.toString();
+        } catch (e) {
+            // Not a full URL — assume it's meeting id
+            let base = 'https://zoom.us/j/' + encodeURIComponent(meetingIdOrUrl);
+            if (pass) base += '?pwd=' + encodeURIComponent(pass);
+            return base;
+        }
+    }
+
+    document.getElementById('join-meeting').addEventListener('click', function() {
+        const id = document.getElementById('meeting_id').value;
+        const pwd = document.getElementById('meeting_pwd').value;
+        const url = buildZoomUrl(id, pwd);
+        if (!url) { alert('Please enter a Meeting ID or full Zoom URL.'); return; }
+        window.open(url, '_blank');
+    });
+
+    document.getElementById('open-in-client').addEventListener('click', function() {
+        const id = document.getElementById('meeting_id').value;
+        if (!id) { alert('Enter meeting ID first.'); return; }
+        // Attempt to open native Zoom client using zoommtg protocol
+        const clientUrl = 'zoommtg://zoom.us/join?confno=' + encodeURIComponent(id);
+        window.location.href = clientUrl;
+    });
+
+    document.getElementById('copy-link').addEventListener('click', function() {
+        const id = document.getElementById('meeting_id').value;
+        const pwd = document.getElementById('meeting_pwd').value;
+        const url = buildZoomUrl(id, pwd);
+        if (!url) { alert('Nothing to copy — enter a meeting ID or URL.'); return; }
+        navigator.clipboard.writeText(url).then(function(){
+            alert('Meeting URL copied to clipboard.');
+        }, function(){
+            alert('Could not copy URL.');
+        });
+    });
+
+    // Start meeting - for host (doctor) we simply open Zoom; in a real app you'd generate a meeting programmatically
+    const startBtn = document.getElementById('start-meeting');
+    if (startBtn) {
+        startBtn.addEventListener('click', function() {
+            const id = document.getElementById('meeting_id').value;
+            const pwd = document.getElementById('meeting_pwd').value;
+            const url = buildZoomUrl(id, pwd);
+            if (!url) { alert('Enter meeting ID or URL to start.'); return; }
+            // For real host-controlled meetings you would redirect the host to the Zoom host URL or use the Zoom SDK
+            window.open(url, '_blank');
+        });
+    }
+</script>
+
+{% endblock content %}

@@ -1,0 +1,259 @@
+{% extends "doctor_header_footer.html" %}
+
+{% load static %}
+{% load humanize %}
+{% block title %} Doctors Messages {% endblock title %}
+{% block content %}
+   <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .message-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .message-item {
+            border-bottom: 1px solid #e9ecef;
+            padding: 15px 0;
+            cursor: pointer;
+        }
+        .message-item:last-child {
+            border-bottom: none;
+        }
+        .message-sender {
+            font-weight: 500;
+            color: #0d6efd;
+        }
+        .message-time {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .message-content {
+            margin-top: 5px;
+        }
+        .unread-message {
+            background-color: #e7f3ff;
+        }
+        .message-detail {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">Messages</h4>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-primary me-3">Unread: {{ unread_count }}</span>
+                    {% if userinfo.profile_picture and userinfo.profile_picture.name %}
+                        <img src="{{ userinfo.profile_picture.url }}" class="profile-img" alt="Doctor">
+                    {% else %}
+                        <img src="{% static 'images/avatar.png' %}" class="profile-img" alt="Doctor">
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Patients</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for patient in patients %}
+                                <div class="d-flex align-items-center mb-3">
+                                    {% if patient.userinfo.profile_picture and patient.userinfo.profile_picture.name %}
+                                        <img src="{{ patient.userinfo.profile_picture.url }}" class="profile-img" alt="{{ patient.get_full_name }}">
+                                    {% else %}
+                                        <img src="{% static 'images/avatar.png' %}" class="profile-img" alt="{{ patient.get_full_name }}">
+                                    {% endif %}
+                                    <div class="ms-2">
+                                        <div class="fw-bold">{{ patient.get_full_name }}</div>
+                                        <small class="text-muted">{{ patient.patient.bloodgroup|default:"Patient" }}</small>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted">No messages from patients yet.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Send a Message</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'send_message' %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="recipient" class="form-label">To Patient</label>
+                                    <select class="form-control" id="recipient" name="recipient_id" required>
+                                        <option value="">Select a patient</option>
+                                        {% for patient in patients %}
+                                            <option value="{{ patient.id }}">{{ patient.get_full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subject" class="form-label">Subject (optional)</label>
+                                    <input type="text" class="form-control" id="subject" name="subject">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Message</label>
+                                    <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+                                </div>
+                                <input type="hidden" name="sender_type" value="doctor">
+                                <button type="submit" class="btn btn-primary">Send</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Inbox</h5>
+                        </div>
+                        <div class="card-body message-list">
+                            {% for msg in messages %}
+                                <div class="message-item {% if not msg.is_read %}unread-message{% endif %}" 
+                                     data-bs-toggle="collapse" 
+                                     data-bs-target="#message-{{ msg.id }}" 
+                                     aria-expanded="false" 
+                                     aria-controls="message-{{ msg.id }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="message-sender">
+                                            From: {{ msg.sender.get_full_name|default:msg.sender.username }}
+                                        </span>
+                                        <span class="message-time">
+                                            {{ msg.timestamp|naturaltime }}
+                                            {% if not msg.is_read %}
+                                                <span class="badge bg-danger ms-2">New</span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="message-content">
+                                        {% if msg.subject %}<strong>{{ msg.subject }}</strong>: {% endif %}{{ msg.message|truncatechars:50 }}
+                                    </div>
+                                </div>
+                                
+                                <div class="collapse" id="message-{{ msg.id }}">
+                                    <div class="message-detail">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>{{ msg.sender.get_full_name|default:msg.sender.username }}</strong>
+                                            <small>{{ msg.timestamp }}</small>
+                                        </div>
+                                        {% if msg.subject %}
+                                            <p><strong>Subject:</strong> {{ msg.subject }}</p>
+                                        {% endif %}
+                                        <p>{{ msg.message }}</p>
+
+                                        <!-- Show replies if any -->
+                                        {% if msg.replies.all %}
+                                            <div class="mt-3 ps-3 border-start">
+                                                <h6 class="text-muted">Replies:</h6>
+                                                {% for reply in msg.replies.all %}
+                                                    <div class="mb-2 p-2 bg-light rounded">
+                                                        <small><strong>{{ reply.sender.get_full_name }}</strong> - {{ reply.timestamp|naturaltime }}</small>
+                                                        <p class="mb-0 mt-1">{{ reply.message }}</p>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="mt-3">
+                                            {% if not msg.is_read %}
+                                                <a href="{% url 'mark_message_as_read' msg.id %}" class="btn btn-sm btn-primary">Mark as Read</a>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#replyModal"
+                                                    onclick="openReplyModal({{ msg.id }}, '{{ msg.sender.get_full_name|default:msg.sender.username }}')">
+                                                <i class="fas fa-reply me-1"></i> Reply
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted text-center">No messages in your inbox.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reply Modal -->
+    <div class="modal fade" id="replyModal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="replyModalLabel">Reply to Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'send_message' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="parent_message_id" id="replyParentMessageId">
+                    <input type="hidden" name="recipient_id" id="replyRecipientId">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">To</label>
+                            <input type="text" class="form-control" id="replyRecipient" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="replyMessage" class="form-label">Your Reply</label>
+                            <textarea class="form-control" id="replyMessage" name="message" rows="4" placeholder="Type your reply here..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send Reply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Responsive Footer -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Map of patient names to IDs for quick lookup
+    const patientIdMap = {
+        {% for patient in patients %}
+            '{{ patient.get_full_name|escapejs }}': '{{ patient.id }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    function openReplyModal(messageId, patientName) {
+        document.getElementById('replyParentMessageId').value = messageId;
+        document.getElementById('replyRecipient').value = patientName;
+        document.getElementById('replyRecipientId').value = patientIdMap[patientName] || '';
+    }
+    </script>
+{% endblock content %}

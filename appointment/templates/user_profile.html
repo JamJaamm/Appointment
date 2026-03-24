@@ -1,0 +1,170 @@
+{% extends "user_header_footer.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+
+<div class="main-content">
+  <div class="container py-4">
+    <!-- Profile Header -->
+    <div class="card mb-4" style="border-radius: 16px;">
+      <div class="card-body p-4">
+        <div class="profile-header d-flex align-items-center gap-4 mb-3 flex-column flex-md-row">
+          {% if userinfo.profile_picture %}
+          <img src="{{ userinfo.profile_picture.url }}" alt="Profile photo" class="profile-pic" style="width: 130px; height: 130px; object-fit: cover; border-radius: 50%; border: 4px solid var(--accent-cream); box-shadow: var(--shadow-md);">
+          {% else %}
+          <img src="{% static 'images/avatar.png' %}" alt="Profile photo" class="profile-pic" style="width: 130px; height: 130px; object-fit: cover; border-radius: 50%; border: 4px solid var(--accent-cream); box-shadow: var(--shadow-md);">
+          {% endif %}
+
+          <div class="flex-grow-1">
+            <h2 class="mb-1" style="font-family: var(--font-heading); font-weight: 600; color: var(--text-primary);">{{ user.first_name }} {{ user.last_name }}</h2>
+            <div class="text-muted mb-3" style="font-size: 0.9rem;">Patient</div>
+
+            <div class="d-flex gap-4 align-items-center flex-wrap mb-3">
+              <div class="d-flex align-items-center gap-2" style="color: var(--text-secondary);">
+                <i class="fas fa-envelope" style="color: var(--primary-blue);"></i>
+                <span>{{ user.email }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2" style="color: var(--text-secondary);">
+                <i class="fas fa-phone" style="color: var(--primary-blue);"></i>
+                <span>{{ userinfo.phone_number|default:"—" }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2" style="color: var(--text-secondary);">
+                <i class="fas fa-map-marker-alt" style="color: var(--primary-blue);"></i>
+                <span>{{ userinfo.location|default:"—" }}</span>
+              </div>
+            </div>
+
+            <div class="profile-actions d-flex gap-2">
+              <a href="{% url 'edit_userprofilepage' %}" class="btn btn-primary" style="border-radius: 8px;">
+                <i class="fas fa-user-edit me-2"></i>Edit Profile
+              </a>
+              <a href="{% url 'patient_appointments' %}" class="btn btn-outline-primary" style="border-radius: 8px;">
+                <i class="fas fa-calendar-alt me-2"></i>My Appointments
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs & Content -->
+    <div class="card mb-4" style="border-radius: 16px;">
+      <div class="card-body p-4">
+        <ul class="nav nav-tabs" id="userTabs" style="border-bottom: 2px solid var(--border-color);">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#about" 
+                    style="color: var(--primary-blue); border: none; background: transparent; font-weight: 500; padding: 0.75rem 1.5rem;">
+              About
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#appointments" 
+                    style="color: var(--text-muted); border: none; background: transparent; font-weight: 500; padding: 0.75rem 1.5rem;">
+              My Appointments
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content mt-4">
+          <!-- About Tab -->
+          <div class="tab-pane fade show active" id="about">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <h6 style="font-family: var(--font-heading); color: var(--primary-blue); margin-bottom: 1rem;">Personal Information</h6>
+                <ul class="list-unstyled" style="color: var(--text-secondary);">
+                  <li class="mb-3"><strong style="color: var(--text-primary);">Date of Birth:</strong> {{ userinfo.dob|date:"F j, Y"|default:"—" }}</li>
+                  <li class="mb-3"><strong style="color: var(--text-primary);">Gender:</strong> {{ userinfo.gender|default:"—" }}</li>
+                  <li class="mb-3"><strong style="color: var(--text-primary);">Blood Group:</strong> {{ userinfo.bloodgroup|default:"—" }}</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h6 style="font-family: var(--font-heading); color: var(--primary-blue); margin-bottom: 1rem;">Contact Details</h6>
+                <ul class="list-unstyled" style="color: var(--text-secondary);">
+                  <li class="mb-3"><strong style="color: var(--text-primary);">Address:</strong> {{ userinfo.location|default:"—" }}</li>
+                  <li class="mb-3"><strong style="color: var(--text-primary);">Phone:</strong> {{ userinfo.phone_number|default:"—" }}</li>
+                  <li class="mb-3"><strong style="color: var(--text-primary);">Email:</strong> {{ user.email }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Appointments Tab -->
+          <div class="tab-pane fade" id="appointments">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="mb-0" style="color: var(--primary-blue);">My Appointments</h5>
+              <a href="{% url 'patient_appointments' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+              </a>
+            </div>
+            
+            <div class="table-responsive">
+              <table class="table align-middle table-hover" style="border-radius: 12px; overflow: hidden;">
+                <thead style="background-color: var(--bg-tertiary);">
+                  <tr>
+                    <th style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Doctor</th>
+                    <th style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Date</th>
+                    <th style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Time</th>
+                    <th style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Status</th>
+                    <th class="text-end" style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if appointments %}
+                    {% for appt in appointments %}
+                    <tr>
+                      <td style="font-weight: 500;">
+                        {% if appt.doctor.userinfo.profile_picture %}
+                          <img src="{{ appt.doctor.userinfo.profile_picture.url }}" alt="Doctor" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
+                        {% endif %}
+                        Dr. {{ appt.doctor.get_full_name }}
+                      </td>
+                      <td>{{ appt.date|date:"M d, Y" }}</td>
+                      <td>{{ appt.date|time:"h:i A" }}</td>
+                      <td>
+                        <span class='badge' style='background-color: {% if appt.status == "approved" %}#28a745{% elif appt.status == "pending" %}#ffc107{% elif appt.status == "completed" %}#6c757d{% elif appt.status == "cancelled" %}#dc3545{% else %}var(--primary-blue){% endif %}; border-radius: 16px; padding: 0.5rem 1rem; color: white;'>
+                          {{ appt.get_status_display }}
+                        </span>
+                      </td>
+                      <td class="text-end">
+                        <a href="{% url 'patient_appointments' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">View</a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fas fa-calendar-check fa-2x mb-2" style="opacity: 0.5;"></i>
+                        <p>No appointments yet</p>
+                        <a href="{% url 'book_appointment' %}" class="btn btn-sm btn-primary mt-2" style="border-radius: 8px;">
+                          <i class="fas fa-plus me-2"></i>Book Appointment
+                        </a>
+                      </td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Update tab styles
+    document.querySelectorAll('#userTabs .nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+        document.querySelectorAll('#userTabs .nav-link').forEach(l => {
+          l.style.color = 'var(--text-muted)';
+        });
+        this.style.color = 'var(--primary-blue)';
+      });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,238 @@
+{% extends "user_header_footer.html" %}
+
+{% load static %}
+{% load humanize %}
+{% block title %}User Messages{% endblock title %}
+{% block content %}
+
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 style="font-family: var(--font-heading); font-weight: 600; color: var(--primary-blue); margin-bottom: 0.25rem;">Messages</h2>
+                <p class="text-muted mb-0">Communicate with your doctors</p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge" style="background-color: var(--primary-blue); padding: 0.5rem 1rem; border-radius: 16px;">
+                    <i class="fas fa-envelope me-1"></i>Unread: {{ unread_count }}
+                </span>
+                {% if userinfo.profile_picture and userinfo.profile_picture.name %}
+                <img src="{{ userinfo.profile_picture.url}}" class="profile-img" alt="User">
+                {% else %}
+                <img src="{% static 'images/avatar.png' %}" class="profile-img" alt="User">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Sidebar: Doctors List & Compose -->
+            <div class="col-md-4">
+                <!-- Doctors List -->
+                <div class="card mb-4" style="border-radius: 16px;">
+                    <div class="card-header" style="background-color: transparent; border-bottom: 1px solid var(--border-color);">
+                        <h5 class="mb-0" style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">
+                            <i class="fas fa-user-md me-2"></i>Doctors
+                        </h5>
+                    </div>
+                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                        {% for doctor in doctors %}
+                            <div class="d-flex align-items-center mb-3 p-2" style="border-radius: 8px; transition: background-color 0.2s;" 
+                                 onmouseover="this.style.backgroundColor='var(--bg-secondary)'" 
+                                 onmouseout="this.style.backgroundColor='transparent'">
+                                {% if doctor.userinfo.profile_picture and doctor.userinfo.profile_picture.name %}
+                                    <img src="{{ doctor.userinfo.profile_picture.url }}" class="profile-img me-3" alt="{{ doctor.get_full_name }}" style="border: 2px solid var(--accent-cream);">
+                                {% else %}
+                                    <img src="{% static 'images/avatar.png' %}" class="profile-img me-3" alt="{{ doctor.get_full_name }}" style="border: 2px solid var(--accent-cream);">
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold" style="color: var(--text-primary);">{{ doctor.get_full_name }}</div>
+                                    <small class="text-muted">{{ doctor.userinfo.speciality|default:"Doctor" }}</small>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted text-center py-3">No doctors available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Compose Message -->
+                <div class="card" style="border-radius: 16px;">
+                    <div class="card-header" style="background-color: transparent; border-bottom: 1px solid var(--border-color);">
+                        <h5 class="mb-0" style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">
+                            <i class="fas fa-paper-plane me-2"></i>Send a Message
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'send_message' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="recipient" class="form-label" style="font-weight: 500; color: var(--text-secondary);">To Doctor</label>
+                                <select class="form-select" id="recipient" name="recipient_id" required style="border-radius: 8px;">
+                                    <option value="">Select a doctor</option>
+                                    {% for doctor in doctors %}
+                                        <option value="{{ doctor.id }}">{{ doctor.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="subject" class="form-label" style="font-weight: 500; color: var(--text-secondary);">Subject</label>
+                                <input type="text" class="form-control" id="subject" name="subject" placeholder="Optional" style="border-radius: 8px;">
+                            </div>
+                            <div class="mb-3">
+                                <label for="message" class="form-label" style="font-weight: 500; color: var(--text-secondary);">Message</label>
+                                <textarea class="form-control" id="message" name="message" rows="4" placeholder="Type your message here..." required style="border-radius: 8px; resize: vertical;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" style="border-radius: 8px;">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Inbox -->
+            <div class="col-md-8">
+                <div class="card" style="border-radius: 16px;">
+                    <div class="card-header" style="background-color: transparent; border-bottom: 1px solid var(--border-color);">
+                        <h5 class="mb-0" style="color: var(--primary-blue); font-family: var(--font-heading); font-weight: 600;">
+                            <i class="fas fa-inbox me-2"></i>Inbox
+                        </h5>
+                    </div>
+                    <div class="card-body message-list" style="max-height: 600px; overflow-y: auto;">
+                        {% for msg in messages %}
+                            <div class="message-item {% if not msg.is_read %}unread-message{% endif %}"
+                                 data-bs-toggle="collapse"
+                                 data-bs-target="#message-{{ msg.id }}"
+                                 aria-expanded="false"
+                                 aria-controls="message-{{ msg.id }}"
+                                 style="border-bottom: 1px solid var(--border-color); padding: 1rem 0; cursor: pointer; transition: all 0.2s; {% if not msg.is_read %}background-color: var(--accent-cream); margin: 0 -1rem; padding-left: 1rem; padding-right: 1rem; border-radius: 8px;{% endif %}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="message-sender" style="font-weight: 600; color: var(--primary-blue);">
+                                                {{ msg.sender.get_full_name|default:msg.sender.username }}
+                                            </span>
+                                            {% if not msg.is_read %}
+                                                <span class="badge" style="background-color: var(--primary-blue); font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 12px;">New</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="message-content" style="color: var(--text-secondary);">
+                                            {% if msg.subject %}<strong>{{ msg.subject }}</strong>: {% endif %}{{ msg.message|truncatechars:80 }}
+                                        </div>
+                                    </div>
+                                    <span class="message-time" style="font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; margin-left: 1rem;">
+                                        {{ msg.timestamp|naturaltime }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="collapse" id="message-{{ msg.id }}">
+                                <div class="message-detail" style="background-color: var(--bg-secondary); border-radius: 12px; padding: 1.5rem; margin-top: 1rem;">
+                                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid var(--border-color);">
+                                        <div>
+                                            <strong style="color: var(--text-primary); font-size: 1.1rem;">{{ msg.sender.get_full_name|default:msg.sender.username }}</strong>
+                                            <div class="text-muted" style="font-size: 0.875rem;">{{ msg.timestamp }}</div>
+                                        </div>
+                                        {% if msg.subject %}
+                                            <span class="badge" style="background-color: var(--accent-cream); color: var(--primary-blue); padding: 0.5rem 1rem; border-radius: 16px;">{{ msg.subject }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <p style="color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap;">{{ msg.message }}</p>
+
+                                    <!-- Show replies if any -->
+                                    {% if msg.replies.all %}
+                                        <div class="mt-4 ps-4" style="border-left: 3px solid var(--primary-blue);">
+                                            <h6 class="text-muted mb-3" style="font-family: var(--font-heading);">Replies:</h6>
+                                            {% for reply in msg.replies.all %}
+                                                <div class="mb-3 p-3" style="background-color: var(--bg-primary); border-radius: 8px;">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <strong style="color: var(--primary-blue);">{{ reply.sender.get_full_name }}</strong>
+                                                        <small class="text-muted">{{ reply.timestamp|naturaltime }}</small>
+                                                    </div>
+                                                    <p class="mb-0" style="color: var(--text-secondary); line-height: 1.6;">{{ reply.message }}</p>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="d-flex gap-2 mt-4 pt-3" style="border-top: 1px solid var(--border-color);">
+                                        {% if not msg.is_read %}
+                                            <a href="{% url 'mark_message_as_read' msg.id %}" class="btn btn-primary btn-sm" style="border-radius: 8px;">
+                                                <i class="fas fa-check me-1"></i>Mark as Read
+                                            </a>
+                                        {% endif %}
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#replyModal"
+                                                onclick="openReplyModal({{ msg.id }}, '{{ msg.sender.get_full_name|default:msg.sender.username }}')"
+                                                style="border-radius: 8px;">
+                                            <i class="fas fa-reply me-1"></i> Reply
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-inbox fa-4x mb-3" style="color: var(--text-light);"></i>
+                                <p class="text-muted">No messages in your inbox.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                <h5 class="modal-title" id="replyModalLabel" style="font-family: var(--font-heading); color: var(--primary-blue);">
+                    <i class="fas fa-reply me-2"></i>Reply to Message
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'send_message' %}">
+                {% csrf_token %}
+                <input type="hidden" name="parent_message_id" id="replyParentMessageId">
+                <input type="hidden" name="recipient_id" id="replyRecipientId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">To</label>
+                        <input type="text" class="form-control" id="replyRecipient" readonly style="background-color: var(--bg-secondary); border-radius: 8px;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="replyMessage" class="form-label" style="font-weight: 500; color: var(--text-secondary);">Your Reply</label>
+                        <textarea class="form-control" id="replyMessage" name="message" rows="5" placeholder="Type your reply here..." required style="border-radius: 8px; resize: vertical;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 8px;">
+                        <i class="fas fa-paper-plane me-2"></i>Send Reply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Map of doctor names to IDs for quick lookup
+const doctorIdMap = {
+    {% for doctor in doctors %}
+        '{{ doctor.get_full_name|escapejs }}': '{{ doctor.id }}'{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+function openReplyModal(messageId, doctorName) {
+    document.getElementById('replyParentMessageId').value = messageId;
+    document.getElementById('replyRecipient').value = doctorName;
+    document.getElementById('replyRecipientId').value = doctorIdMap[doctorName] || '';
+}
+</script>
+{% endblock content %}

@@ -1,0 +1,134 @@
+{% extends 'user_header_footer.html' %}
+{% load static %}
+
+{% block title %}Doctor Meeting - MediCare{% endblock title %}
+
+{% block content %}
+<div class="main-content">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="card p-4">
+          <h3 class="mb-3"><i class="fas fa-user-md"></i> Doctor Meeting Dashboard</h3>
+          <p class="text-muted">This page is for doctors to start and manage online consultations. You can paste an existing Zoom meeting link or Meeting ID to host, or generate/share a meeting URL with patients.</p>
+
+          <div class="row mt-4">
+            <div class="col-lg-6">
+              <h5>Start or Manage Meeting</h5>
+              <form id="doctor-meeting-form">
+                <div class="mb-2">
+                  <label class="form-label">Meeting ID or URL</label>
+                  <input type="text" id="meeting_id_doc" class="form-control" placeholder="Enter Zoom meeting ID or full URL">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Passcode (optional)</label>
+                  <input type="text" id="meeting_pwd_doc" class="form-control" placeholder="Passcode if required">
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Notes for Patient (optional)</label>
+                  <textarea id="meeting_notes" class="form-control" rows="3" placeholder="E.g. Please join 5 minutes early."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                  <button id="host-meeting" type="button" class="btn btn-primary"><i class="fas fa-play"></i> Start / Host Meeting</button>
+                  <button id="copy-meeting-link-doc" type="button" class="btn btn-outline-secondary"><i class="fas fa-copy"></i> Copy Share Link</button>
+                  <button id="send-link" type="button" class="btn btn-success"><i class="fas fa-paper-plane"></i> Send to Patient</button>
+                </div>
+              </form>
+
+              <div class="mt-4">
+                <h6>Recent Meetings</h6>
+                <p class="small text-muted">No recent meetings recorded. In a production app you'd store generated meeting links and upcoming appointments here.</p>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <h5>Host Controls & Guidance</h5>
+              <ul>
+                <li>Starting a meeting will open Zoom's host page or native client. For scheduled meetings create them in your Zoom account and paste the link here.</li>
+                <li>Enable <strong>Waiting Room</strong> or a passcode to protect meetings with sensitive patient data.</li>
+                <li>To record the session, enable recording in Zoom and inform the patient in advance.</li>
+                <li>To embed meetings on-site consider Zoom Web SDK or Video SDK; they require server-side signing and API keys.</li>
+              </ul>
+
+              <div class="border rounded p-3 mt-3 bg-light">
+                <h6>Quick Host Actions</h6>
+                <div class="d-flex gap-2">
+                  <button id="open-zoom-host" class="btn btn-outline-primary btn-sm">Open Host in Browser</button>
+                  <button id="open-zoom-client-host" class="btn btn-outline-secondary btn-sm">Open in Zoom App</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+          <div>
+            <h6>Security & compliance</h6>
+            <p class="small text-muted">Protect patient privacy by using secure meeting settings. This application does not record or proxy video/audio — Zoom handles media streaming.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function buildZoomUrl(meetingIdOrUrl, pass) {
+    if (!meetingIdOrUrl) return '';
+    meetingIdOrUrl = meetingIdOrUrl.trim();
+    try {
+      const url = new URL(meetingIdOrUrl);
+      if (pass) {
+        const params = new URLSearchParams(url.search);
+        if (!params.get('pwd')) params.set('pwd', pass);
+        url.search = params.toString();
+      }
+      return url.toString();
+    } catch (e) {
+      let base = 'https://zoom.us/j/' + encodeURIComponent(meetingIdOrUrl);
+      if (pass) base += '?pwd=' + encodeURIComponent(pass);
+      return base;
+    }
+  }
+
+  document.getElementById('host-meeting').addEventListener('click', function(){
+    const id = document.getElementById('meeting_id_doc').value;
+    const pwd = document.getElementById('meeting_pwd_doc').value;
+    const url = buildZoomUrl(id, pwd);
+    if (!url) { alert('Enter meeting ID or URL to start hosting.'); return; }
+    window.open(url, '_blank');
+  });
+
+  document.getElementById('copy-meeting-link-doc').addEventListener('click', function(){
+    const id = document.getElementById('meeting_id_doc').value;
+    const pwd = document.getElementById('meeting_pwd_doc').value;
+    const url = buildZoomUrl(id, pwd);
+    if (!url) { alert('Nothing to copy.'); return; }
+    navigator.clipboard.writeText(url).then(()=> alert('Meeting URL copied.'));
+  });
+
+  document.getElementById('send-link').addEventListener('click', function(){
+    const id = document.getElementById('meeting_id_doc').value;
+    const pwd = document.getElementById('meeting_pwd_doc').value;
+    const notes = document.getElementById('meeting_notes').value;
+    const url = buildZoomUrl(id, pwd);
+    if (!url) { alert('Enter meeting info to send.'); return; }
+    // Placeholder: in a real app you would POST to server to send email or message to the patient
+    alert('Pretend sending:\n' + url + '\nNotes: ' + notes);
+  });
+
+  document.getElementById('open-zoom-host').addEventListener('click', function(){
+    const id = document.getElementById('meeting_id_doc').value;
+    const pwd = document.getElementById('meeting_pwd_doc').value;
+    const url = buildZoomUrl(id, pwd);
+    if (!url) { alert('Enter meeting info first.'); return; }
+    window.open(url, '_blank');
+  });
+
+  document.getElementById('open-zoom-client-host').addEventListener('click', function(){
+    const id = document.getElementById('meeting_id_doc').value;
+    if (!id) { alert('Enter meeting ID first.'); return; }
+    window.location.href = 'zoommtg://zoom.us/join?confno=' + encodeURIComponent(id);
+  });
+</script>
+
+{% endblock content %}

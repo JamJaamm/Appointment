@@ -1,0 +1,38 @@
+{% extends "doctor_header_footer.html" %}
+{% load static %}
+
+{% block title %}Decline Appointment{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-ban me-2"></i>Decline Appointment</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-light border mb-4">
+                        <strong>Patient:</strong> {{ appointment.patient.user.get_full_name }}<br>
+                        <strong>Date:</strong> {{ appointment.date|date:'M d, Y' }} at {{ appointment.date|time:'H:i' }}
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Declining (Required)</label>
+                            <textarea name="decline_reason" class="form-control" rows="3" required
+                                placeholder="Please explain why you are declining this appointment..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'doctor_appointments' %}" class="btn btn-secondary">Go Back</a>
+                            <button type="submit" class="btn btn-danger">Decline Appointment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

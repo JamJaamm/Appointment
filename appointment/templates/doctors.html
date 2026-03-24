@@ -1,0 +1,745 @@
+{% extends "header_footer.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Our Doctors{% endblock title %}
+
+{% block content %}
+
+<style>
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144;600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ========================================
+   CSS Variables - Light Mode (Default)
+   ======================================== */
+:root {
+  --primary-blue: #0070a0;
+  --primary-blue-dark: #00577c;
+  --primary-blue-soft: #2c90c9;
+  --primary-blue-light: #1b9cca;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f9fa;
+  --bg-tertiary: #cce5f3;
+
+  --text-primary: #1f1f1f;
+  --text-secondary: #33383f;
+  --text-muted: #626a72;
+  --text-light: #99a4af;
+
+  --border-color: #dee5eb;
+  --border-light: #c2cdd8;
+
+  --accent-cream: #cce5f3;
+  --accent-yellow: #faea73;
+  --accent-pink: #f7cedc;
+  --accent-cyan: #cceff6;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12);
+
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
+/* ========================================
+   Dark Mode Variables
+   ======================================== */
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --border-color: #334155;
+  --border-light: #475569;
+
+  --accent-cream: #1e3a5f;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+/* ========================================
+   Custom Utility Classes
+   ======================================== */
+.section-padding {
+  padding: 5rem 0;
+}
+
+@media (min-width: 992px) {
+  .section-padding {
+    padding: 7.5rem 0;
+  }
+}
+
+.label-small {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-blue);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .label-small {
+  color: var(--primary-blue-soft);
+}
+
+.text-muted-custom {
+  color: var(--text-muted) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* ========================================
+   Hero Section
+   ======================================== */
+.doctors-hero {
+  background: linear-gradient(166deg, var(--bg-tertiary) 4%, var(--bg-secondary) 56%, var(--bg-primary) 56%);
+  padding: 6rem 0 4rem;
+  text-align: center;
+}
+
+[data-theme="dark"] .doctors-hero {
+  background: linear-gradient(166deg, #1e3a5f 4%, #0f172a 56%, #0f172a 56%);
+}
+
+.doctors-hero-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .doctors-hero-title {
+  color: var(--primary-blue-soft);
+}
+
+.doctors-hero-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   Filter/Search Section
+   ======================================== */
+.filter-section {
+  background-color: var(--bg-secondary);
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filter-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .filter-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.filter-input {
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 112, 160, 0.1);
+}
+
+.filter-btn {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filter-btn:hover {
+  background-color: var(--primary-blue-dark);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   Doctor Cards
+   ======================================== */
+.doctor-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-theme="dark"] .doctor-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.doctor-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-8px);
+}
+
+.doctor-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 200px;
+  background: linear-gradient(135deg, var(--accent-cream), var(--bg-tertiary));
+}
+
+[data-theme="dark"] .doctor-image-wrapper {
+  background: linear-gradient(135deg, var(--accent-cream), var(--bg-secondary));
+}
+
+.doctor-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.doctor-card:hover .doctor-avatar {
+  transform: scale(1.05);
+}
+
+.doctor-specialty-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: var(--primary-blue);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+[data-theme="dark"] .doctor-specialty-badge {
+  background-color: var(--primary-blue-soft);
+}
+
+.doctor-card-body {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.doctor-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.doctor-title {
+  color: var(--primary-blue);
+  font-weight: 500;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+[data-theme="dark"] .doctor-title {
+  color: var(--primary-blue-soft);
+}
+
+.doctor-bio {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.doctor-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+}
+
+.doctor-experience {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.doctor-experience i {
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .doctor-experience i {
+  color: var(--primary-blue-soft);
+}
+
+.doctor-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.rating-star {
+  color: var(--accent-yellow);
+}
+
+.doctor-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: transparent;
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.doctor-btn:hover {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+[data-theme="dark"] .doctor-btn {
+  color: var(--primary-blue-soft);
+  border-color: var(--primary-blue-soft);
+}
+
+[data-theme="dark"] .doctor-btn:hover {
+  background-color: var(--primary-blue-soft);
+}
+
+/* ========================================
+   CTA Section
+   ======================================== */
+.cta-section {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.cta-title {
+  color: white;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-white {
+  background-color: white;
+  color: var(--primary-blue);
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  transition: all var(--transition-fast);
+  display: inline-block;
+}
+
+.btn-white:hover {
+  background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline-white {
+  background-color: transparent;
+  color: white;
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid white;
+  transition: all var(--transition-fast);
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.btn-outline-white:hover {
+  background-color: white;
+  color: var(--primary-blue);
+}
+
+/* ========================================
+   Scroll Animations
+   ======================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+.stagger-6 { transition-delay: 0.6s; }
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .section-padding {
+    padding: 3rem 0;
+  }
+  
+  .doctor-image-wrapper {
+    height: 180px;
+  }
+  
+  .filter-card {
+    flex-direction: column;
+  }
+  
+  .filter-input {
+    width: 100%;
+  }
+  
+  .filter-btn {
+    width: 100%;
+  }
+}
+</style>
+
+<!-- ========================================
+   Hero Section
+   ======================================== -->
+<section class="doctors-hero">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <span class="label-small reveal">Our Team</span>
+        <h1 class="doctors-hero-title reveal stagger-1">Meet Our Expert Physicians</h1>
+        <p class="doctors-hero-subtitle reveal stagger-2">
+          Highly qualified doctors dedicated to providing you with the best healthcare experience.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Filter Section (Optional - can be enhanced with JS)
+   ======================================== -->
+<section class="filter-section">
+  <div class="container">
+    <div class="filter-card reveal">
+      <input type="text" class="filter-input" placeholder="Search by name or specialty...">
+      <select class="filter-input">
+        <option value="">All Specialties</option>
+        <option value="cardiology">Cardiology</option>
+        <option value="dermatology">Dermatology</option>
+        <option value="neurology">Neurology</option>
+        <option value="pediatrics">Pediatrics</option>
+        <option value="oncology">Oncology</option>
+        <option value="general">General Medicine</option>
+      </select>
+      <button class="filter-btn">
+        <i class="bi bi-search me-2"></i>Search
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================
+   Doctors Grid Section
+   ======================================== -->
+<section class="section-padding">
+  <div class="container">
+    <div class="row g-4">
+      {% for doctor in doctors %}
+      <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="doctor-card reveal stagger-{{ forloop.counter|add:0|default:1 }}">
+          <div class="doctor-image-wrapper">
+            {% if doctor.userinfo.profile_picture and doctor.userinfo.profile_picture.name %}
+              <img src="{{ doctor.userinfo.profile_picture.url }}" alt="{{ doctor.get_full_name }}" class="doctor-avatar">
+            {% else %}
+              <img src="{% static 'images/avatar.png' %}" alt="{{ doctor.get_full_name }}" class="doctor-avatar">
+            {% endif %}
+            <span class="doctor-specialty-badge">{{ doctor.userinfo.speciality|default:'General' }}</span>
+          </div>
+          
+          <div class="doctor-card-body">
+            <h3 class="doctor-name">Dr. {{ doctor.get_full_name|default:doctor.username }}</h3>
+            <p class="doctor-title">{{ doctor.userinfo.speciality|default:'General Physician' }}</p>
+            
+            <p class="doctor-bio">
+              {{ doctor.userinfo.bio|default:'Experienced professional providing excellent patient care with a focus on evidence-based medicine.'|truncatewords:20 }}
+            </p>
+            
+            <div class="doctor-meta">
+              <div class="doctor-experience">
+                <i class="bi bi-briefcase"></i>
+                <span>{{ doctor.doctor.yearsOfExperience|default:'5' }}+ years</span>
+              </div>
+              <div class="doctor-rating">
+                <i class="bi bi-star-fill rating-star"></i>
+                <span>5.0</span>
+              </div>
+            </div>
+            
+            <a href="#" class="doctor-btn" data-bs-toggle="modal" data-bs-target="#doctorModal{{ doctor.id }}">
+              View Profile
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="text-center py-5 reveal">
+          <div style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;">
+            <i class="bi bi-people"></i>
+          </div>
+          <h3 class="h5" style="color: var(--text-secondary);">No Doctors Available</h3>
+          <p class="text-muted">Please check back later for updates.</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Doctor Profile Modals -->
+{% for doctor in doctors %}
+<div class="modal fade" id="doctorModal{{ doctor.id }}" tabindex="-1" aria-labelledby="doctorModalLabel{{ doctor.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="doctorModalLabel{{ doctor.id }}">
+          Dr. {{ doctor.get_full_name|default:doctor.username }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-4 text-center mb-3 mb-md-0">
+            {% if doctor.userinfo.profile_picture and doctor.userinfo.profile_picture.name %}
+              <img src="{{ doctor.userinfo.profile_picture.url }}" alt="{{ doctor.get_full_name }}" class="img-fluid rounded-circle mb-3" style="max-width: 200px; max-height: 200px; object-fit: cover;">
+            {% else %}
+              <img src="{% static 'images/avatar.png' %}" alt="{{ doctor.get_full_name }}" class="img-fluid rounded-circle mb-3" style="max-width: 200px; max-height: 200px; object-fit: cover;">
+            {% endif %}
+            <span class="badge bg-primary-soft fs-6">{{ doctor.userinfo.speciality|default:'General Physician' }}</span>
+          </div>
+          <div class="col-md-8">
+            <h6 class="mb-3">About</h6>
+            <p class="text-muted">{{ doctor.userinfo.bio|default:'Experienced professional providing excellent patient care with a focus on evidence-based medicine and patient-centered approach.' }}</p>
+            
+            <h6 class="mb-3 mt-4">Information</h6>
+            <ul class="list-unstyled">
+              {% if doctor.userinfo.phone_number %}
+              <li class="mb-2">
+                <i class="bi bi-telephone-fill text-primary me-2"></i>
+                <strong>Phone:</strong> {{ doctor.userinfo.phone_number }}
+              </li>
+              {% endif %}
+              <li class="mb-2">
+                <i class="bi bi-envelope-fill text-primary me-2"></i>
+                <strong>Email:</strong> {{ doctor.email }}
+              </li>
+              {% if doctor.userinfo.location %}
+              <li class="mb-2">
+                <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                <strong>Location:</strong> {{ doctor.userinfo.location }}
+              </li>
+              {% endif %}
+              <li class="mb-2">
+                <i class="bi bi-briefcase-fill text-primary me-2"></i>
+                <strong>Experience:</strong> {{ doctor.doctor.yearsOfExperience|default:'5' }}+ years
+              </li>
+              {% if doctor.userinfo.gender %}
+              <li class="mb-2">
+                <i class="bi bi-person-fill text-primary me-2"></i>
+                <strong>Gender:</strong> {{ doctor.userinfo.get_gender_display|default:doctor.userinfo.gender }}
+              </li>
+              {% endif %}
+            </ul>
+            
+            <div class="mt-4 p-3" style="background-color: var(--bg-tertiary); border-radius: 8px;">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="bi bi-star-fill rating-star"></i>
+                  <span class="fw-bold ms-1">5.0</span>
+                  <span class="text-muted ms-2">Patient Rating</span>
+                </div>
+                <div>
+                  <i class="bi bi-people-fill text-primary"></i>
+                  <span class="fw-bold ms-1">500+</span>
+                  <span class="text-muted ms-2">Patients</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mt-4">
+          <div class="col-12">
+            <h6 class="mb-3">Services Offered</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge bg-secondary">{{ doctor.userinfo.speciality|default:'General' }} Consultation</span>
+              <span class="badge bg-secondary">Follow-up Visits</span>
+              <span class="badge bg-secondary">Health Screening</span>
+              <span class="badge bg-secondary">Preventive Care</span>
+              <span class="badge bg-secondary">Treatment Planning</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <a href="{% url 'book_appointment' %}?doctor_id={{ doctor.doctor.id }}" class="btn btn-primary">
+          Book Appointment
+          <i class="bi bi-calendar-check ms-2"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- ========================================
+   CTA Section
+   ======================================== -->
+<section class="cta-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <h2 class="cta-title reveal">Ready to Meet Your Doctor?</h2>
+        <p class="cta-subtitle reveal stagger-1">
+          Book an appointment with our expert medical team today and experience personalized healthcare.
+        </p>
+        <div class="reveal stagger-2">
+          <a href="{% url 'book_appointment' %}" class="btn-white">
+            Book Appointment
+            <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+          <a href="{% url 'services' %}" class="btn-outline-white">
+            View Services
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Scroll reveal animation
+function reveal() {
+  var reveals = document.querySelectorAll(".reveal");
+  
+  reveals.forEach(function(element) {
+    var windowHeight = window.innerHeight;
+    var elementTop = element.getBoundingClientRect().top;
+    var elementVisible = 150;
+    
+    if (elementTop < windowHeight - elementVisible) {
+      element.classList.add("active");
+    }
+  });
+}
+
+window.addEventListener("scroll", reveal);
+reveal();
+</script>
+
+{% endblock content %}

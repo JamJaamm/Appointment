@@ -1,0 +1,134 @@
+{% extends "doctor_header_footer.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Patients{% endblock %}
+
+{% block content %}
+<style>
+    body { background: #f8f9fa; }
+    .main-content { margin-left: 270px; padding: 30px; }
+    .patient-card {
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(42,111,209,0.10);
+        background: #fff;
+        transition: transform .2s, box-shadow .2s;
+        cursor: pointer;
+    }
+    .patient-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 8px 32px rgba(42,111,209,0.15);
+    }
+    .patient-card img {
+        object-fit: cover;
+        border: 3px solid #0d6efd;
+    }
+    .stats-card {
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(42,111,209,0.10);
+        background: #fff;
+    }
+</style>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary">My Patients</h2>
+            <p class="text-muted mb-0">View and manage your patients' medical records</p>
+        </div>
+        <span class="badge bg-primary fs-5" id="patientCount">Total: {{ patients.count }}</span>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stats-card p-3 text-center">
+                <div class="text-muted">Total Patients</div>
+                <h4 class="text-primary">{{ patients.count }}</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card p-3 text-center">
+                <div class="text-muted">Active Prescriptions</div>
+                <h4 class="text-success">
+                    {% widthratio patients.count 1 2 %}
+                </h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card p-3 text-center">
+                <div class="text-muted">Appointments This Month</div>
+                <h4 class="text-info">{{ patients.count }}</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card p-3 text-center">
+                <div class="text-muted">Medical Records</div>
+                <h4 class="text-warning">
+                    {% widthratio patients.count 1 3 %}
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-4">
+        <input type="text" class="form-control" id="searchPatients" placeholder="Search patients by name...">
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for patient in patients %}
+            {% with userinfo=patient.user.userinfo %}
+            <div class="col-md-4 patient-item" data-patient-name="{{ patient.user.get_full_name|lower }}">
+                <div class="patient-card p-4 text-center" onclick="window.location.href='{% url 'patient_detail' patient.id %}'">
+                    {% if userinfo.profile_picture and userinfo.profile_picture.name %}
+                        <img src="{{ userinfo.profile_picture.url }}" class="rounded-circle mb-3" width="100" height="100" alt="{{ patient.user.get_full_name }}">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ patient.user.get_full_name|default:patient.user.username }}&size=100&background=0d6efd&color=fff" class="rounded-circle mb-3" width="100" height="100" alt="Default">
+                    {% endif %}
+
+                    <h5 class="fw-bold mb-1">{{ patient.user.get_full_name|default:patient.user.username }}</h5>
+                    <p class="text-muted mb-1">{{ patient.user.email }}</p>
+                    <p class="mb-1"><strong>Age:</strong> {{ patient.age|default:"N/A" }}</p>
+                    <p class="mb-1"><strong>Blood Group:</strong> {{ patient.bloodgroup|default:"N/A" }}</p>
+                    
+                    <div class="d-flex gap-2 justify-content-center mt-3">
+                        <a href="{% url 'patient_detail' patient.id %}" class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
+                            <i class="fas fa-user-md me-1"></i> View Details
+                        </a>
+                        <a href="{% url 'create_prescription' %}?patient_id={{ patient.id }}" class="btn btn-success btn-sm" onclick="event.stopPropagation()">
+                            <i class="fas fa-pills me-1"></i> Prescribe
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% endwith %}
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="stats-card p-5">
+                    <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No patients yet</h5>
+                    <p class="text-muted">Patients will appear here after they book an appointment with you.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Search functionality
+    document.getElementById('searchPatients').addEventListener('input', function() {
+        const search = this.value.toLowerCase();
+        document.querySelectorAll('.patient-item').forEach(item => {
+            const name = item.dataset.patientName || '';
+            if (name.includes(search)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

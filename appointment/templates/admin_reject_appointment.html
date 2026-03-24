@@ -1,0 +1,57 @@
+{% extends "admin_header_footer.html" %}
+{% load static %}
+
+{% block title %}Reject Appointment{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="container py-4">
+  <div class="card p-4">
+    <h3 class="mb-3"><i class="fas fa-times-circle me-2 text-danger"></i>Reject Appointment</h3>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="alert alert-warning">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      Are you sure you want to reject this appointment? This action cannot be undone.
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Appointment Details</h5>
+        <p><strong>Doctor:</strong> Dr. {{ appointment.doctor.get_full_name }}</p>
+        <p><strong>Patient:</strong> {{ appointment.patient.user.get_full_name }}</p>
+        <p><strong>Date:</strong> {{ appointment.date|date:'M d, Y' }}</p>
+        <p><strong>Time:</strong> {{ appointment.date|time:'H:i' }}</p>
+        <p><strong>Reason:</strong> {{ appointment.reason|default:'—' }}</p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="rejection_reason" class="form-label">Rejection Reason (Optional)</label>
+        <textarea name="rejection_reason" id="rejection_reason" class="form-control" rows="3" placeholder="Enter reason for rejection..."></textarea>
+      </div>
+      
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">
+          <i class="fas fa-check me-2"></i>Confirm Rejection
+        </button>
+        <a href="{% url 'admin_appointments_list' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

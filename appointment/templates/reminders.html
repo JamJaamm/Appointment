@@ -1,0 +1,263 @@
+{% extends "doctor_header_footer.html" %}
+
+{% load static %}
+{% load humanize %}
+{% block title %}Reminders{% endblock title %}
+
+{% block content %}
+
+   <style>
+        body { background: #f8f9fa; }
+        .reminder-card {
+            border-radius: 1rem;
+             box-shadow: 0 2px 8px rgba(42,111,209,0.10);
+              background: #fff;
+               padding: 30px;
+                margin-bottom: 20px;
+             }
+        .calendar-section { background: #fff; border-radius: 1rem; box-shadow: 0 2px 8px rgba(42,111,209,0.10); padding: 30px; margin-top: 40px; }
+        .send-reminder-btn {
+            background: linear-gradient(135deg, #0070a0 0%, #00577c 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .send-reminder-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 112, 160, 0.3);
+            color: white;
+        }
+    </style>
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-primary mb-0">Appointment Reminders</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sendReminderModal">
+                <i class="fas fa-bell me-2"></i>Send Manual Reminder
+            </button>
+        </div>
+        
+        <!-- Upcoming Appointments -->
+        <div class="card mb-4" style="border-radius: 1rem; border: none; box-shadow: 0 2px 8px rgba(42,111,209,0.10);">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-calendar-check me-2 text-primary"></i>Upcoming Appointments</h5>
+                {% if appointments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appt in appointments %}
+                            <tr data-appointment-id="{{ appt.id }}">
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if appt.patient.user.userinfo.profile_picture %}
+                                        <img src="{{ appt.patient.user.userinfo.profile_picture.url }}" alt="Patient" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                        {% else %}
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-cream); display: flex; align-items: center; justify-content: center; color: var(--primary-blue); font-weight: 600;">
+                                            {{ appt.patient.user.first_name|first|upper }}{{ appt.patient.user.last_name|first|upper }}
+                                        </div>
+                                        {% endif %}
+                                        <span>{{ appt.patient.user.get_full_name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ appt.date|date:"M d, Y" }}</td>
+                                <td>{{ appt.date|time:"H:i" }}</td>
+                                <td>
+                                    <span class="badge {% if appt.status == 'approved' %}bg-success{% elif appt.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ appt.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary send-reminder-btn"
+                                            data-patient-id="{{ appt.patient.id }}"
+                                            data-patient-name="{{ appt.patient.user.get_full_name }}"
+                                            data-patient-email="{{ appt.patient.user.email }}"
+                                            data-appointment-date="{{ appt.date|date:'Y-m-d' }}"
+                                            data-appointment-time="{{ appt.date|time:'H:i' }}"
+                                            onclick="openSendReminder(this)">
+                                        <i class="fas fa-bell me-1"></i>Send Reminder
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-check fa-3x text-muted mb-3" style="opacity: 0.5;"></i>
+                    <p class="text-muted">No upcoming appointments</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="calendar-section">
+            <h5 class="fw-bold mb-3"><i class="fas fa-calendar-alt me-2 text-primary"></i>Appointments Calendar</h5>
+            <div id="calendar"></div>
+        </div>
+    </div>
+    
+    <!-- Send Reminder Modal -->
+    <div class="modal fade" id="sendReminderModal" tabindex="-1" aria-labelledby="sendReminderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" id="sendReminderModalLabel" style="font-family: var(--font-heading); color: var(--primary-blue);">
+                        <i class="fas fa-bell me-2"></i>Send Appointment Reminder
+                    </h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="sendReminderForm" method="post" action="{% url 'send_reminder' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="appointment_id" id="reminderAppointmentId" value="">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">Patient</label>
+                            <select name="patient_id" id="reminderPatient" class="form-select" style="border-radius: 8px;" required>
+                                <option value="">Select a patient</option>
+                                {% for patient in patients %}
+                                <option value="{{ patient.id }}">{{ patient.user.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">Patient Email</label>
+                            <input type="email" class="form-control" id="reminderPatientEmail" readonly style="background-color: var(--bg-secondary); border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">Appointment Date</label>
+                            <input type="date" class="form-control" id="reminderAppointmentDate" name="appointment_date" required style="border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">Appointment Time</label>
+                            <input type="time" class="form-control" id="reminderAppointmentTime" name="appointment_time" required style="border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 500; color: var(--text-secondary);">Reminder Message</label>
+                            <textarea name="message" class="form-control" id="reminderMessage" rows="3" style="border-radius: 8px;" required>Dear patient, this is a friendly reminder about your upcoming appointment with Dr. {{ user.last_name }}. Please arrive 10 minutes early. If you need to reschedule, please contact us at least 24 hours in advance.</textarea>
+                        </div>
+                        <div class="text-end">
+                            <button class="btn btn-outline-secondary me-2" type="button" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+                            <button class="btn btn-primary" type="submit" style="border-radius: 8px;">
+                                <i class="fas fa-paper-plane me-2"></i>Send Reminder
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Reminder Modal -->
+    <div class="modal fade" id="editReminderModal" tabindex="-1" aria-labelledby="editReminderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editReminderModalLabel">Edit Reminder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editReminderForm">
+                        <div class="mb-3">
+                            <label for="reminderTitle" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="reminderTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reminderDate" class="form-label">Date & Time</label>
+                            <input type="datetime-local" class="form-control" id="reminderDate" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script>
+        // Real appointment data from backend
+        let appointments = [
+            {% for appt in appointments %}
+            {
+                id: {{ appt.id }},
+                title: 'Appointment: {{ appt.patient.user.get_full_name|escapejs }}',
+                start: '{{ appt.date|date:"c" }}',
+                patientName: '{{ appt.patient.user.get_full_name|escapejs }}',
+                status: '{{ appt.status }}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        // Open send reminder modal with pre-filled data
+        function openSendReminder(btn) {
+            const patientId = btn.getAttribute('data-patient-id');
+            const patientName = btn.getAttribute('data-patient-name');
+            const patientEmail = btn.getAttribute('data-patient-email');
+            const apptDate = btn.getAttribute('data-appointment-date');
+            const apptTime = btn.getAttribute('data-appointment-time');
+            const row = btn.closest('tr');
+            const appointmentId = row.getAttribute('data-appointment-id') || '';
+
+            document.getElementById('reminderPatient').value = patientId;
+            document.getElementById('reminderPatientEmail').value = patientEmail;
+            document.getElementById('reminderAppointmentDate').value = apptDate;
+            document.getElementById('reminderAppointmentTime').value = apptTime;
+            document.getElementById('reminderAppointmentId').value = appointmentId;
+
+            // Customize message with patient name
+            const message = `Dear ${patientName},\n\nThis is a friendly reminder about your upcoming appointment with Dr. {{ user.last_name }} on ${apptDate} at ${apptTime}. Please arrive 10 minutes early.\n\nIf you need to reschedule or cancel, please contact us at least 24 hours in advance.\n\nBest regards,\nMediCare Clinic`;
+            document.getElementById('reminderMessage').value = message;
+
+            new bootstrap.Modal(document.getElementById('sendReminderModal')).show();
+        }
+        
+        // Update email when patient is selected
+        document.getElementById('reminderPatient')?.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            // You can add data-email attribute to options if needed
+            document.getElementById('reminderPatientEmail').value = '';
+        });
+        
+        // Calendar
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                themeSystem: 'bootstrap5',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: appointments,
+                eventClick: function(info) {
+                    alert('Appointment: ' + info.event.title);
+                },
+                eventDidMount: function(info) {
+                    // Color code based on status
+                    if (info.event.extendedProps.status === 'approved') {
+                        info.el.style.borderColor = '#28a745';
+                        info.el.style.backgroundColor = '#28a745';
+                    } else if (info.event.extendedProps.status === 'pending') {
+                        info.el.style.borderColor = '#ffc107';
+                        info.el.style.backgroundColor = '#ffc107';
+                    }
+                }
+            });
+            calendar.render();
+        });
+    </script>
+
+{% endblock content %}

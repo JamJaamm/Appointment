@@ -1,0 +1,2215 @@
+{% extends "header_footer.html" %}
+{% load static %}
+{% load humanize %}
+
+
+{% block title %}Medicare{% endblock title %}
+
+{% block extra_head %}{% endblock extra_head %}
+
+{% block content %}
+
+    <style>
+ /* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ========================================
+   CSS Variables - Light Mode (Default)
+   ======================================== */
+:root {
+  /* Primary Colors */
+  --primary-blue: #0070a0;
+  --primary-blue-dark: #00577c;
+  --primary-blue-soft: #2c90c9;
+  --primary-blue-light: #1b9cca;
+  
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f9fa;
+  --bg-tertiary: #cce5f3;
+  
+  /* Text Colors */
+  --text-primary: #1f1f1f;
+  --text-secondary: #33383f;
+  --text-muted: #626a72;
+  --text-light: #99a4af;
+  
+  /* Border Colors */
+  --border-color: #dee5eb;
+  --border-light: #c2cdd8;
+  
+  /* Accent Colors */
+  --accent-cream: #cce5f3;
+  --accent-yellow: #faea73;
+  --accent-pink: #f7cedc;
+  --accent-cyan: #cceff6;
+  
+  /* Shadow */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12);
+  
+  /* Typography */
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* ========================================
+   Dark Mode Variables
+   ======================================== */
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+  
+  --border-color: #334155;
+  --border-light: #475569;
+  
+  --accent-cream: #1e3a5f;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-fast);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ========================================
+   Bootstrap Overrides
+   ======================================== */
+.btn-primary {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-blue-dark);
+  border-color: var(--primary-blue-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-primary {
+  color: var(--primary-blue);
+  border-color: var(--border-color);
+  background-color: transparent;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .btn-outline-primary {
+  color: var(--primary-blue-soft);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--primary-blue-soft);
+}
+
+.card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all var(--transition-fast);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+[data-theme="dark"] .card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.form-control, .form-select {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: var(--bg-primary);
+  border-color: var(--primary-blue);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 0.2rem rgba(0, 112, 160, 0.25);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 16px;
+}
+
+.bg-primary-soft {
+  background-color: var(--accent-cream) !important;
+  color: var(--primary-blue) !important;
+}
+
+[data-theme="dark"] .bg-primary-soft {
+  background-color: var(--accent-cream) !important;
+  color: var(--primary-blue-soft) !important;
+}
+
+/* ========================================
+   Custom Utility Classes
+   ======================================== */
+.section-padding {
+  padding: 5rem 0;
+}
+
+@media (min-width: 992px) {
+  .section-padding {
+    padding: 7.5rem 0;
+  }
+}
+
+.label-small {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-blue);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .label-small {
+  color: var(--primary-blue-soft);
+}
+
+.text-muted-custom {
+  color: var(--text-muted) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-tertiary-custom {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* ========================================
+   Navigation
+   ======================================== */
+.navbar {
+  padding: 1rem 0;
+  transition: all var(--transition-fast);
+  background-color: transparent;
+}
+
+.navbar.scrolled {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .navbar.scrolled {
+  background-color: rgba(15, 23, 42, 0.95);
+}
+
+.navbar-brand {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-blue) !important;
+}
+
+[data-theme="dark"] .navbar-brand {
+  color: var(--primary-blue-soft) !important;
+}
+
+.nav-link {
+  color: var(--text-secondary) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--primary-blue) !important;
+}
+
+[data-theme="dark"] .nav-link {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .nav-link:hover {
+  color: var(--primary-blue-soft) !important;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* ========================================
+   Hero Section
+   ======================================== */
+.hero-section {
+  min-height: 100vh;
+  padding-top: 100px;
+  background: linear-gradient(166deg, #cce5f3 4%, #f7f9fa 56%, #fff 56%);
+  display: flex;
+  align-items: center;
+}
+
+[data-theme="dark"] .hero-section {
+  background: linear-gradient(166deg, #1e3a5f 4%, #0f172a 56%, #0f172a 56%);
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+.hero-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  max-width: 540px;
+}
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .stat-icon {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.hero-image-wrapper {
+  position: relative;
+}
+
+.hero-image {
+  border-radius: 16px;
+  box-shadow: var(--shadow-hover);
+}
+
+.hero-floating-card {
+  position: absolute;
+  bottom: -20px;
+  left: -20px;
+  background-color: var(--bg-primary);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+[data-theme="dark"] .hero-floating-card {
+  background-color: var(--bg-secondary);
+}
+
+/* ========================================
+   About Section
+   ======================================== */
+.about-image-wrapper {
+  position: relative;
+}
+
+.about-image {
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+}
+
+.about-decoration {
+  position: absolute;
+  bottom: -24px;
+  right: -24px;
+  width: 120px;
+  height: 120px;
+  background-color: var(--accent-cream);
+  border-radius: 16px;
+  z-index: -1;
+}
+
+[data-theme="dark"] .about-decoration {
+  background-color: var(--accent-cream);
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.feature-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--primary-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   Doctor Cards
+   ======================================== */
+.doctor-card {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.doctor-image-wrapper {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  border: 4px solid var(--accent-cream);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .doctor-image-wrapper {
+  border-color: var(--accent-cream);
+}
+
+.doctor-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doctor-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.doctor-specialty {
+  margin-bottom: 0.5rem;
+}
+
+.doctor-experience {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.doctor-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.star-icon {
+  color: #faea73;
+}
+
+/* ========================================
+   Booking Form
+   ======================================== */
+.booking-form-wrapper {
+  background-color: var(--bg-primary);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="dark"] .booking-form-wrapper {
+  background-color: var(--bg-secondary);
+}
+
+.benefit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.benefit-list li {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.benefit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .benefit-icon {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+/* ========================================
+   Health Tips Carousel
+   ======================================== */
+.tip-card .card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+.tip-card .card-body {
+  padding: 1.25rem;
+}
+
+/* ========================================
+   FAQ & Chatbot
+   ======================================== */
+.accordion-item {
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.accordion-button {
+  background-color: transparent;
+  color: var(--text-primary);
+  font-weight: 500;
+  padding: 1.25rem 0;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: transparent;
+  color: var(--primary-blue);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .accordion-button:not(.collapsed) {
+  color: var(--primary-blue-soft);
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: var(--border-color);
+}
+
+.accordion-button::after {
+  filter: invert(0);
+}
+
+[data-theme="dark"] .accordion-button::after {
+  filter: invert(1);
+}
+
+.accordion-body {
+  padding: 0 0 1.25rem 0;
+  color: var(--text-muted);
+}
+
+/* Chatbot */
+.chatbot-container {
+  background-color: var(--bg-primary);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .chatbot-container {
+  background-color: var(--bg-secondary);
+}
+
+.chatbot-header {
+  background-color: var(--primary-blue);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+[data-theme="dark"] .chatbot-header {
+  background-color: var(--primary-blue);
+}
+
+.chatbot-messages {
+  height: 280px;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.message {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.message-avatar.bot {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+.message-avatar.user {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .message-avatar.user {
+  color: var(--primary-blue-soft);
+}
+
+.message-bubble {
+  max-width: 75%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+}
+
+.message-bubble.bot {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-top-left-radius: 4px;
+}
+
+[data-theme="dark"] .message-bubble.bot {
+  background-color: var(--bg-primary);
+}
+
+.message-bubble.user {
+  background-color: var(--primary-blue);
+  color: white;
+  border-top-right-radius: 4px;
+}
+
+.chatbot-quick-actions {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quick-action-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  background-color: var(--bg-secondary);
+  color: var(--primary-blue);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .quick-action-btn {
+  background-color: var(--bg-primary);
+  color: var(--primary-blue-soft);
+}
+
+.quick-action-btn:hover {
+  background-color: var(--accent-cream);
+}
+
+.chatbot-input {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ========================================
+   Features
+   ======================================== */
+.feature-card {
+  padding: 2rem;
+  height: 100%;
+}
+
+.feature-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  color: var(--primary-blue);
+  transition: transform var(--transition-fast);
+}
+
+[data-theme="dark"] .feature-icon-wrapper {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.feature-card:hover .feature-icon-wrapper {
+  transform: scale(1.1);
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.feature-description {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* ========================================
+   How It Works
+   ======================================== */
+.step-wrapper {
+  text-align: center;
+  position: relative;
+}
+
+.step-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  margin-bottom: 1.5rem;
+}
+
+.step-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--primary-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 112, 160, 0.3);
+}
+
+.step-number {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--accent-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+}
+
+[data-theme="dark"] .step-number {
+  background-color: var(--accent-cream);
+  color: var(--primary-blue-soft);
+}
+
+.step-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.step-description {
+  color: var(--text-muted);
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.steps-connector {
+  position: absolute;
+  top: 40px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-top: 2px dashed var(--accent-cream);
+  z-index: -1;
+}
+
+[data-theme="dark"] .steps-connector {
+  border-color: var(--accent-cream);
+}
+
+@media (max-width: 767px) {
+  .steps-connector {
+    display: none;
+  }
+}
+
+/* ========================================
+   Testimonials
+   ======================================== */
+.testimonial-card {
+  padding: 2rem;
+  height: 100%;
+}
+
+.quote-icon {
+  color: var(--primary-blue);
+  opacity: 0.2;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .quote-icon {
+  color: var(--primary-blue-soft);
+}
+
+.testimonial-content {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.testimonial-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.testimonial-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.testimonial-role {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* ========================================
+   CTA Section
+   ======================================== */
+.cta-section {
+  background: linear-gradient(135deg, #0070a0 0%, #004968 100%);
+  padding: 5rem 0;
+}
+
+.cta-title {
+  color: white;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+}
+
+.cta-note {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+
+.btn-white {
+  background-color: white;
+  color: var(--primary-blue);
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  transition: all var(--transition-fast);
+}
+
+.btn-white:hover {
+  background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+.footer {
+  background-color: #1f1f1f;
+  padding: 4rem 0 2rem;
+}
+
+[data-theme="dark"] .footer {
+  background-color: #0a0f1d;
+}
+
+.footer-brand {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.footer-description {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.5rem;
+}
+
+.footer-title {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.75rem;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.6);
+  transition: color var(--transition-fast);
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+.footer-contact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-contact li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.footer-contact-icon {
+  color: var(--primary-blue);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.social-links {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.social-link {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all var(--transition-fast);
+}
+
+.social-link:hover {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 2rem;
+  margin-top: 3rem;
+}
+
+.footer-copyright {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+.footer-legal {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-legal a {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.875rem;
+  transition: color var(--transition-fast);
+}
+
+.footer-legal a:hover {
+  color: white;
+}
+
+/* ========================================
+   Scroll Animations
+   ======================================== */
+.reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal-left.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-right {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1),
+              transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.reveal-right.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Stagger delays */
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+.stagger-6 { transition-delay: 0.6s; }
+
+/* ========================================
+   Custom Scrollbar
+   ======================================== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+@media (max-width: 991px) {
+  .hero-section {
+    padding-top: 80px;
+    min-height: auto;
+    padding-bottom: 4rem;
+  }
+  
+  .hero-stats {
+    gap: 1.5rem;
+  }
+  
+  .steps-connector {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .section-padding {
+    padding: 3rem 0;
+  }
+  
+  .hero-floating-card {
+    display: none;
+  }
+  
+  .about-decoration {
+    display: none;
+  }
+  
+  .booking-form-wrapper {
+    padding: 1.5rem;
+  }
+  
+  .footer-legal {
+    margin-top: 1rem;
+  }
+}
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+  
+  .reveal,
+  .reveal-left,
+  .reveal-right {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
+    </style>
+
+  <!-- ========================================
+     Hero Section
+     ======================================== -->
+  <section id="home" class="hero-section" >
+    <div class="container">
+      <div class="row align-items-center gy-5">
+        <div class="col-lg-6">
+          <h1 class="hero-title reveal">Healthcare Made Simple, Fast & Accessible</h1>
+          <p class="hero-subtitle reveal stagger-1">
+            Book appointments with top doctors, manage your health records, and get 
+            expert medical advice – all in one place. Your health journey starts here.
+          </p>
+          <div class="d-flex flex-wrap gap-3 reveal stagger-2">
+            <a href="{% url 'initiate_booking' %}" class="btn btn-primary btn-lg">
+              Book Appointment
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+            <a href="{% url 'about' %}" class="btn btn-outline-primary btn-lg">Learn More</a>
+          </div>
+          
+          <div class="hero-stats reveal stagger-3">
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="bi bi-people-fill"></i>
+              </div>
+              <div>
+                <p class="stat-value">10,000+</p>
+                <p class="stat-label">Patients</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="bi bi-heart-pulse-fill"></i>
+              </div>
+              <div>
+                <p class="stat-value">500+</p>
+                <p class="stat-label">Doctors</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="bi bi-clock-fill"></i>
+              </div>
+              <div>
+                <p class="stat-value">24/7</p>
+                <p class="stat-label">Support</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-6"  >
+          <div class="hero-image-wrapper reveal-right">
+            <img src="{% static 'images/gen.jpeg' %}" alt="Friendly healthcare professional" class="hero-image img-fluid">
+            <div class="hero-floating-card d-none d-lg-flex">
+              <div class="stat-icon">
+                <i class="bi bi-heart-pulse-fill"></i>
+              </div>
+              <div>
+                <p class="stat-value mb-0">Expert Care</p>
+                <p class="stat-label mb-0">Verified Doctors</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+     About Section
+     ======================================== -->
+  <section id="about" class="section-padding">
+    <div class="container">
+      <div class="row align-items-center gy-5">
+        <div class="col-lg-6">
+          <div class="about-image-wrapper reveal-left">
+            <img src="{% static 'images/covid-still-life-with-vaccine.jpg' %}" alt="Medical team" class="about-image img-fluid">
+            <div class="about-decoration"></div>
+          </div>
+        </div>
+        
+        <div class="col-lg-6">
+          <div class="reveal-right">
+            <span class="label-small">About Us</span>
+            <h2 class="mb-4">Your Health, Our Priority</h2>
+            <p class="text-muted-custom mb-4">
+              We believe healthcare should be simple, accessible, and patient-centered. 
+              Our platform connects you with verified medical professionals, streamlines 
+              appointment booking, and puts your health information at your fingertips.
+            </p>
+            
+            <ul class="feature-list mb-4">
+              <li>
+                <span class="feature-icon"><i class="bi bi-check-lg"></i></span>
+                Verified & experienced doctors
+              </li>
+              <li>
+                <span class="feature-icon"><i class="bi bi-check-lg"></i></span>
+                Easy online appointment booking
+              </li>
+              <li>
+                <span class="feature-icon"><i class="bi bi-check-lg"></i></span>
+                Secure health records management
+              </li>
+              <li>
+                <span class="feature-icon"><i class="bi bi-check-lg"></i></span>
+                24/7 patient support
+              </li>
+            </ul>
+            
+            <a href="{% url 'about' %}" class="btn btn-link text-decoration-none p-0" style="color: var(--primary-blue);">
+              Learn More About Us
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+     Doctor Showcase Section
+     ======================================== -->
+  <section id="doctors" class="section-padding bg-secondary-custom">
+    <div class="container">
+      <div class="text-center max-w-600 mx-auto mb-5 reveal">
+        <span class="label-small">Our Doctors</span>
+        <h2 class="mb-3">Meet Our Expert Physicians</h2>
+        <p class="text-muted-custom">Experienced healthcare professionals dedicated to your well-being</p>
+      </div>
+
+      <div class="row g-4">
+        {% for doctor in available_doctors %}
+        <div class="col-sm-6 col-lg-3">
+          <div class="card doctor-card h-100 reveal stagger-{{ forloop.counter|add:0|default:1 }}">
+            <div class="doctor-image-wrapper">
+              {% if doctor.userinfo.profile_picture %}
+                <img src="{{ doctor.userinfo.profile_picture.url }}" alt="{{ doctor.get_full_name }}" class="doctor-image">
+              {% else %}
+                <img src="{% static 'images/avatar.png' %}" alt="{{ doctor.get_full_name }}" class="doctor-image">
+              {% endif %}
+            </div>
+            <h5 class="doctor-name">{{ doctor.get_full_name }}</h5>
+            <span class="badge bg-primary-soft doctor-specialty">{{ doctor.doctor.speciality|default:"General" }}</span>
+            <p class="doctor-experience">{{ doctor.doctor.yearsOfExperience|default:"5" }} years experience</p>
+            <div class="doctor-rating">
+              <i class="bi bi-star-fill star-icon"></i>
+              <span class="fw-semibold">5.0</span>
+            </div>
+            <a href="{% url 'initiate_booking' %}" class="btn btn-primary btn-sm">
+              Book Appointment
+              <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+          <p class="text-muted-custom">No doctors available at the moment. Please check back later.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+     Appointment Booking Section
+     ======================================== -->
+  <section id="booking" class="section-padding">
+    <div class="container">
+      <div class="row gy-5">
+        <div class="col-lg-7">
+          <div class="booking-form-wrapper reveal-left">
+            <span class="label-small">Book Appointment</span>
+            <h2 class="mb-4">Schedule Your Visit in Minutes</h2>
+
+            <form action="{% url 'initiate_booking' %}" method="GET" id="bookingForm">
+              <div class="alert alert-info mb-3">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Note:</strong> You will be asked to login or register before completing your booking.
+              </div>
+              
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" class="form-control" placeholder="John Doe" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email Address</label>
+                  <input type="email" class="form-control" placeholder="john@example.com" required>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Phone Number</label>
+                  <input type="tel" class="form-control" placeholder="+1 (555) 123-4567" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Select Doctor</label>
+                  <select class="form-select" name="doctor_id" required>
+                    <option value="">Choose a doctor</option>
+                    {% for doctor in available_doctors %}
+                        <option value="{{ doctor.doctor.id }}">
+                            {{ doctor.get_full_name }} - {{ doctor.doctor.speciality|default:"General" }}
+                        </option>
+                    {% empty %}
+                        <option value="" disabled>No doctors available</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Preferred Date</label>
+                  <input type="date" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Preferred Time</label>
+                  <select class="form-select" required>
+                    <option value="">Select time</option>
+                    <option value="morning">Morning (9AM - 12PM)</option>
+                    <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                    <option value="evening">Evening (5PM - 8PM)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label">Reason for Visit</label>
+                <textarea class="form-control" rows="3" placeholder="Briefly describe your symptoms or reason for visit..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 btn-lg">
+                Confirm Booking
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        
+        <div class="col-lg-5">
+          <div class="reveal-right stagger-1">
+            <img src="{% static 'images/img1.jpg' %}" alt="Appointment booking" class="img-fluid rounded-4 mb-4">
+            <h3 class="h4 mb-4">Why Book With Us?</h3>
+            <ul class="benefit-list">
+              <li>
+                <span class="benefit-icon"><i class="bi bi-check-lg"></i></span>
+                Instant confirmation
+              </li>
+              <li>
+                <span class="benefit-icon"><i class="bi bi-shield-check"></i></span>
+                Free cancellation up to 24h
+              </li>
+              <li>
+                <span class="benefit-icon"><i class="bi bi-bell"></i></span>
+                Reminders via SMS & email
+              </li>
+              <li>
+                <span class="benefit-icon"><i class="bi bi-credit-card"></i></span>
+                Secure payment options
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+     Health Tips Section
+     ======================================== -->
+  <section class="section-padding bg-secondary-custom">
+    <div class="container">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-end mb-5 reveal">
+        <div>
+          <span class="label-small">Health Tips</span>
+          <h2 class="mb-2">Latest Health Insights</h2>
+          <p class="text-muted-custom mb-0">Expert advice for a healthier lifestyle</p>
+        </div>
+        <a href="#" class="btn btn-link text-decoration-none p-0 mt-3 mt-md-0" style="color: var(--primary-blue);">
+          View All Articles
+          <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+      </div>
+      
+      <div class="row g-4">
+        <!-- Tip 1 -->
+        <div class="col-sm-6 col-lg-3">
+          <div class="card tip-card h-100 reveal stagger-1">
+            <img src="{% static 'images/blog/heart-health.jpg' %}" alt="Heart health" class="card-img-top">
+            <div class="card-body">
+              <span class="badge bg-primary-soft mb-2">Cardiology</span>
+              <h5 class="card-title">10 Tips for a Healthy Heart</h5>
+              <p class="text-muted-custom small mb-3">5 min read</p>
+              <a href="#" class="btn btn-link text-decoration-none p-0" style="color: var(--primary-blue);" data-bs-toggle="modal" data-bs-target="#healthTipModal1">
+                Read More
+                <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tip 2 -->
+        <div class="col-sm-6 col-lg-3">
+          <div class="card tip-card h-100 reveal stagger-2">
+            <img src="{% static 'images/blog/child-nutrition.jpg' %}" alt="Child nutrition" class="card-img-top">
+            <div class="card-body">
+              <span class="badge bg-primary-soft mb-2">Pediatrics</span>
+              <h5 class="card-title">Understanding Your Child's Nutrition</h5>
+              <p class="text-muted-custom small mb-3">7 min read</p>
+              <a href="#" class="btn btn-link text-decoration-none p-0" style="color: var(--primary-blue);" data-bs-toggle="modal" data-bs-target="#healthTipModal2">
+                Read More
+                <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tip 3 -->
+        <div class="col-sm-6 col-lg-3">
+          <div class="card tip-card h-100 reveal stagger-3">
+            <img src="{% static 'images/blog/stress-management.jpg' %}" alt="Stress management" class="card-img-top">
+            <div class="card-body">
+              <span class="badge bg-primary-soft mb-2">Mental Health</span>
+              <h5 class="card-title">Managing Stress: A Complete Guide</h5>
+              <p class="text-muted-custom small mb-3">6 min read</p>
+              <a href="#" class="btn btn-link text-decoration-none p-0" style="color: var(--primary-blue);" data-bs-toggle="modal" data-bs-target="#healthTipModal3">
+                Read More
+                <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tip 4 -->
+        <div class="col-sm-6 col-lg-3">
+          <div class="card tip-card h-100 reveal stagger-4">
+            <img src="{% static 'images/blog/regular-checkups.jpg' %}" alt="Regular checkups" class="card-img-top">
+            <div class="card-body">
+              <span class="badge bg-primary-soft mb-2">General Health</span>
+              <h5 class="card-title">The Importance of Regular Checkups</h5>
+              <p class="text-muted-custom small mb-3">4 min read</p>
+              <a href="#" class="btn btn-link text-decoration-none p-0" style="color: var(--primary-blue);" data-bs-toggle="modal" data-bs-target="#healthTipModal4">
+                Read More
+                <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Health Tips Modals -->
+  <!-- Modal 1: Heart Health -->
+  <div class="modal fade" id="healthTipModal1" tabindex="-1" aria-labelledby="healthTipModalLabel1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="healthTipModalLabel1">
+            <span class="badge bg-primary-soft me-2">Cardiology</span>
+            10 Tips for a Healthy Heart
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <img src="{% static 'images/blog/heart-health.jpg' %}" alt="Heart health" class="img-fluid rounded mb-4 w-100" style="max-height: 300px; object-fit: cover;">
+          <p class="lead">Your heart is one of the most important organs in your body. Here are 10 essential tips to keep it healthy and functioning optimally.</p>
+          
+          <h6 class="mt-4 mb-3">1. Eat a Heart-Healthy Diet</h6>
+          <p>Focus on fruits, vegetables, whole grains, lean proteins, and healthy fats. Limit saturated fats, trans fats, sodium, and added sugars.</p>
+          
+          <h6 class="mt-4 mb-3">2. Exercise Regularly</h6>
+          <p>Aim for at least 150 minutes of moderate aerobic activity or 75 minutes of vigorous activity per week. Include strength training exercises.</p>
+          
+          <h6 class="mt-4 mb-3">3. Maintain a Healthy Weight</h6>
+          <p>Being overweight increases your risk of heart disease. Even losing 5-10% of your body weight can improve heart health.</p>
+          
+          <h6 class="mt-4 mb-3">4. Quit Smoking</h6>
+          <p>Smoking is a major risk factor for heart disease. Quitting smoking can significantly reduce your risk within just one year.</p>
+          
+          <h6 class="mt-4 mb-3">5. Limit Alcohol</h6>
+          <p>If you drink alcohol, do so in moderation. For healthy adults, that means up to one drink a day for women and two for men.</p>
+          
+          <h6 class="mt-4 mb-3">6. Manage Stress</h6>
+          <p>Chronic stress may increase your risk of heart disease. Practice stress-management techniques like meditation, deep breathing, or yoga.</p>
+          
+          <h6 class="mt-4 mb-3">7. Get Quality Sleep</h6>
+          <p>Aim for 7-9 hours of quality sleep per night. Poor sleep is linked to increased risk of heart disease and high blood pressure.</p>
+          
+          <h6 class="mt-4 mb-3">8. Monitor Your Numbers</h6>
+          <p>Keep track of your blood pressure, cholesterol, and blood sugar levels. Regular check-ups can help detect problems early.</p>
+          
+          <h6 class="mt-4 mb-3">9. Stay Hydrated</h6>
+          <p>Drinking enough water helps your heart pump blood more efficiently through your blood vessels.</p>
+          
+          <h6 class="mt-4 mb-3">10. Know Your Family History</h6>
+          <p>Heart disease can run in families. Knowing your family history helps you and your doctor assess your risk.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <a href="#booking" class="btn btn-primary">Book a Cardiology Appointment</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Child Nutrition -->
+  <div class="modal fade" id="healthTipModal2" tabindex="-1" aria-labelledby="healthTipModalLabel2" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="healthTipModalLabel2">
+            <span class="badge bg-primary-soft me-2">Pediatrics</span>
+            Understanding Your Child's Nutrition
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <img src="{% static 'images/blog/child-nutrition.jpg' %}" alt="Child nutrition" class="img-fluid rounded mb-4 w-100" style="max-height: 300px; object-fit: cover;">
+          <p class="lead">Proper nutrition is crucial for your child's growth and development. Here's what every parent should know.</p>
+          
+          <h6 class="mt-4 mb-3">Balanced Diet Basics</h6>
+          <p>Children need a variety of foods from all food groups: fruits, vegetables, grains, protein foods, and dairy. Each group provides essential nutrients for growth.</p>
+          
+          <h6 class="mt-4 mb-3">Key Nutrients for Growing Kids</h6>
+          <ul>
+            <li><strong>Calcium:</strong> Essential for strong bones and teeth. Found in dairy products, leafy greens, and fortified foods.</li>
+            <li><strong>Iron:</strong> Important for brain development and energy. Found in lean meats, beans, and fortified cereals.</li>
+            <li><strong>Protein:</strong> Builds and repairs tissues. Found in meat, fish, eggs, beans, and nuts.</li>
+            <li><strong>Vitamins A, C, and D:</strong> Support immune function and overall health.</li>
+          </ul>
+          
+          <h6 class="mt-4 mb-3">Healthy Eating Habits</h6>
+          <ul>
+            <li>Establish regular meal and snack times</li>
+            <li>Offer a variety of healthy foods</li>
+            <li>Limit sugary drinks and snacks</li>
+            <li>Encourage water as the primary beverage</li>
+            <li>Make mealtimes pleasant and stress-free</li>
+            <li>Be a good role model with your own eating habits</li>
+          </ul>
+          
+          <h6 class="mt-4 mb-3">Portion Sizes</h6>
+          <p>Children's portions should be smaller than adult portions. A good rule of thumb: 1 tablespoon of each food per year of age.</p>
+          
+          <h6 class="mt-4 mb-3">Dealing with Picky Eaters</h6>
+          <p>It's normal for children to be selective about food. Offer new foods multiple times, involve them in meal preparation, and avoid forcing them to eat.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <a href="#booking" class="btn btn-primary">Book a Pediatric Appointment</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Stress Management -->
+  <div class="modal fade" id="healthTipModal3" tabindex="-1" aria-labelledby="healthTipModalLabel3" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="healthTipModalLabel3">
+            <span class="badge bg-primary-soft me-2">Mental Health</span>
+            Managing Stress: A Complete Guide
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <img src="{% static 'images/blog/stress-management.jpg' %}" alt="Stress management" class="img-fluid rounded mb-4 w-100" style="max-height: 300px; object-fit: cover;">
+          <p class="lead">Stress is a natural part of life, but chronic stress can harm your physical and mental health. Learn effective ways to manage it.</p>
+          
+          <h6 class="mt-4 mb-3">Understanding Stress</h6>
+          <p>Stress is your body's response to challenges. While short-term stress can be helpful, chronic stress can lead to health problems including heart disease, depression, and weakened immune function.</p>
+          
+          <h6 class="mt-4 mb-3">Signs of Chronic Stress</h6>
+          <ul>
+            <li>Persistent fatigue or exhaustion</li>
+            <li>Difficulty sleeping</li>
+            <li>Changes in appetite</li>
+            <li>Irritability or mood swings</li>
+            <li>Difficulty concentrating</li>
+            <li>Physical symptoms like headaches or muscle tension</li>
+          </ul>
+          
+          <h6 class="mt-4 mb-3">Stress Management Techniques</h6>
+          
+          <h6 class="mt-3 mb-2">1. Deep Breathing Exercises</h6>
+          <p>Practice the 4-7-8 technique: Inhale for 4 counts, hold for 7, exhale for 8. This activates your body's relaxation response.</p>
+          
+          <h6 class="mt-3 mb-2">2. Regular Physical Activity</h6>
+          <p>Exercise releases endorphins, natural mood boosters. Aim for 30 minutes of moderate exercise most days of the week.</p>
+          
+          <h6 class="mt-3 mb-2">3. Mindfulness and Meditation</h6>
+          <p>Practicing mindfulness helps you stay present and reduces anxiety. Even 5-10 minutes of daily meditation can make a difference.</p>
+          
+          <h6 class="mt-3 mb-2">4. Time Management</h6>
+          <p>Prioritize tasks, break large projects into smaller steps, and learn to say no to unnecessary commitments.</p>
+          
+          <h6 class="mt-3 mb-2">5. Social Support</h6>
+          <p>Connect with friends, family, or support groups. Talking about your stress can provide relief and perspective.</p>
+          
+          <h6 class="mt-3 mb-2">6. Healthy Lifestyle</h6>
+          <p>Maintain a balanced diet, get adequate sleep, and limit caffeine and alcohol, which can worsen stress.</p>
+          
+          <h6 class="mt-4 mb-3">When to Seek Professional Help</h6>
+          <p>If stress is interfering with your daily life, relationships, or work, consider speaking with a mental health professional.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <a href="#booking" class="btn btn-primary">Book a Consultation</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Regular Checkups -->
+  <div class="modal fade" id="healthTipModal4" tabindex="-1" aria-labelledby="healthTipModalLabel4" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="healthTipModalLabel4">
+            <span class="badge bg-primary-soft me-2">General Health</span>
+            The Importance of Regular Checkups
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <img src="{% static 'images/blog/regular-checkups.jpg' %}" alt="Regular checkups" class="img-fluid rounded mb-4 w-100" style="max-height: 300px; object-fit: cover;">
+          <p class="lead">Regular medical checkups are essential for maintaining good health and catching potential problems early.</p>
+          
+          <h6 class="mt-4 mb-3">Why Regular Checkups Matter</h6>
+          <p>Preventive care through regular checkups can help detect health issues before they become serious, often when they're easier and less expensive to treat.</p>
+          
+          <h6 class="mt-4 mb-3">Benefits of Regular Checkups</h6>
+          <ul>
+            <li><strong>Early Detection:</strong> Many conditions like high blood pressure, diabetes, and certain cancers show no early symptoms.</li>
+            <li><strong>Preventive Care:</strong> Vaccinations, screenings, and health counseling can prevent illnesses.</li>
+            <li><strong>Health Monitoring:</strong> Track changes in your health over time.</li>
+            <li><strong>Relationship Building:</strong> Develop a ongoing relationship with your healthcare provider.</li>
+            <li><strong>Personalized Advice:</strong> Get health recommendations tailored to your age, gender, and risk factors.</li>
+          </ul>
+          
+          <h6 class="mt-4 mb-3">Recommended Checkup Frequency</h6>
+          <ul>
+            <li><strong>Children:</strong> Regular well-child visits as recommended by your pediatrician</li>
+            <li><strong>Adults 18-50:</strong> Every 2-3 years if healthy</li>
+            <li><strong>Adults 50+:</strong> Annually</li>
+            <li><strong>Chronic Conditions:</strong> As recommended by your doctor</li>
+          </ul>
+          
+          <h6 class="mt-4 mb-3">What to Expect During a Checkup</h6>
+          <ul>
+            <li>Review of medical history and medications</li>
+            <li>Vital signs measurement (blood pressure, heart rate, temperature)</li>
+            <li>Physical examination</li>
+            <li>Blood tests and other screenings as needed</li>
+            <li>Vaccinations if due</li>
+            <li>Discussion of lifestyle factors (diet, exercise, stress)</li>
+          </ul>
+          
+          <h6 class="mt-4 mb-3">Preparing for Your Checkup</h6>
+          <ul>
+            <li>Make a list of any symptoms or concerns</li>
+            <li>Bring a list of all medications and supplements</li>
+            <li>Note any family history of disease</li>
+            <li>Prepare questions for your doctor</li>
+            <li>Bring your insurance information</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <a href="#booking" class="btn btn-primary">Book Your Checkup Today</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+     FAQ & Chatbot Section
+     ======================================== -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="row gy-5">
+        <div class="col-lg-6">
+          <div class="reveal-left">
+            <span class="label-small">FAQ</span>
+            <h2 class="mb-4">Frequently Asked Questions</h2>
+            
+            <div class="accordion" id="faqAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                    How do I book an appointment?
+                  </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Simply select your preferred doctor, choose an available date and time, 
+                    and fill in your details. You'll receive an instant confirmation via email and SMS.
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                    Can I cancel or reschedule my appointment?
+                  </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Yes, you can cancel or reschedule up to 24 hours before your appointment at no charge.
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                    Are the doctors verified?
+                  </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    All doctors on our platform are thoroughly verified with valid medical licenses and credentials.
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                    Is my health information secure?
+                  </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Absolutely. We use industry-standard encryption and comply with all healthcare data protection regulations.
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                    What payment methods are accepted?
+                  </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    We accept credit/debit cards, digital wallets, and select insurance plans.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-6">
+          <div class="reveal-right stagger-1">
+            <!-- Chatbot -->
+            <div class="chatbot-container" id="chatbotContainer">
+              <div class="chatbot-header">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="message-avatar bot">
+                    <i class="bi bi-robot"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 text-white">MediCare Assistant</h6>
+                    <small class="text-white-50">Online</small>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="chatbot-messages" id="chatMessages">
+                <div class="message">
+                  <div class="message-avatar bot">
+                    <i class="bi bi-robot"></i>
+                  </div>
+                  <div class="message-bubble bot">
+                    Hi! I'm here to help. What can I assist you with today?
+                  </div>
+                </div>
+              </div>
+              
+              <div class="chatbot-quick-actions">
+                <button class="quick-action-btn" onclick="sendQuickMessage('Book Appointment')">Book Appointment</button>
+                <button class="quick-action-btn" onclick="sendQuickMessage('Find a Doctor')">Find a Doctor</button>
+                <button class="quick-action-btn" onclick="sendQuickMessage('Emergency')">Emergency</button>
+              </div>
+              
+              <div class="chatbot-input">
+                <input type="text" class="form-control" id="chatInput" placeholder="Type your message...">
+                <button class="btn btn-primary" onclick="sendMessage()">
+                  <i class="bi bi-send"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+     Features Section
+     ======================================== -->
+  <section id="features" class="section-padding bg-tertiary-custom">
+    <div class="container">
+      <div class="text-center max-w-600 mx-auto mb-5 reveal">
+        <span class="label-small">Features</span>
+        <h2 class="mb-3">Why Choose MediCare?</h2>
+        <p class="text-muted-custom">Everything you need for better healthcare management</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-sm-6 col-lg-4">
+          <div class="card feature-card h-100 reveal stagger-1">
+            <div class="feature-icon-wrapper">
+              <i class="bi bi-calendar-check-fill fs-4"></i>
+            </div>
+            <h4 class="feature-title">Easy Booking</h4>
+            <p class="feature-description">Book appointments in just a few clicks, 24/7</p>
+          </div>
+        </div>
+        
+        <div class="col-sm-6 col-lg-4">
+          <div class="card feature-card h-100 reveal stagger-2">
+            <div class="feature-icon-wrapper">
+              <i class="bi bi-heart-pulse-fill fs-4"></i>
+            </div>
+            <h4 class="feature-title">Expert Doctors</h4>
+            <p class="feature-description">Access to verified, experienced healthcare professionals</p>
+          </div>
+        </div>
+        
+        <div class="col-sm-6 col-lg-4">
+          <div class="card feature-card h-100 reveal stagger-3">
+            <div class="feature-icon-wrapper">
+              <i class="bi bi-bell-fill fs-4"></i>
+            </div>
+            <h4 class="feature-title">Smart Reminders</h4>
+            <p class="feature-description">Never miss an appointment with automatic reminders</p>
+          </div>
+        </div>
+        
+        <div class="col-sm-6 col-lg-4">
+          <div class="card feature-card h-100 reveal stagger-4">
+            <div class="feature-icon-wrapper">
+              <i class="bi bi-file-text-fill fs-4"></i>
+            </div>
+            <h4 class="feature-title">Health Records</h4>
+            <p class="feature-description">Securely store and access your medical history</p>
+          </div>
+        </div>
+        
+        <div class="col-sm-6 col-lg-4">
+          <div class="card feature-card h-100 reveal stagger-5">
+            <div class="feature-icon-wrapper">
+              <i class="bi bi-camera-video-fill fs-4"></i>
+            </div>
+            <h4 class="feature-title">Telemedicine</h4>
+            <p class="feature-description">Consult with doctors from the comfort of your home</p>
+          </div>
+        </div>
+        
+        <div class="col-sm-6 col-lg-4">
+          <div class="card feature-card h-100 reveal stagger-6">
+            <div class="feature-icon-wrapper">
+              <i class="bi bi-headset fs-4"></i>
+            </div>
+            <h4 class="feature-title">24/7 Support</h4>
+            <p class="feature-description">Round-the-clock assistance for all your healthcare needs</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+     How It Works Section
+     ======================================== -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="text-center max-w-600 mx-auto mb-5 reveal">
+        <span class="label-small">How It Works</span>
+        <h2 class="mb-3">Your Health Journey in 3 Simple Steps</h2>
+      </div>
+      
+      <div class="row g-5 position-relative">
+        <div class="steps-connector d-none d-md-block"></div>
+        
+        <div class="col-md-4">
+          <div class="step-wrapper reveal stagger-1">
+            <div class="step-icon-wrapper">
+              <div class="step-icon">
+                <i class="bi bi-search fs-3"></i>
+              </div>
+              <span class="step-number">1</span>
+            </div>
+            <h4 class="step-title">Choose Your Doctor</h4>
+            <p class="step-description">Browse our network of verified doctors and select the one that fits your needs.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="step-wrapper reveal stagger-2">
+            <div class="step-icon-wrapper">
+              <div class="step-icon">
+                <i class="bi bi-calendar-check fs-3"></i>
+              </div>
+              <span class="step-number">2</span>
+            </div>
+            <h4 class="step-title">Book Your Visit</h4>
+            <p class="step-description">Pick a convenient date and time, and confirm your appointment instantly.</p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="step-wrapper reveal stagger-3">
+            <div class="step-icon-wrapper">
+              <div class="step-icon">
+                <i class="bi bi-heart-pulse fs-3"></i>
+              </div>
+              <span class="step-number">3</span>
+            </div>
+            <h4 class="step-title">Get Quality Care</h4>
+            <p class="step-description">Visit the clinic or connect online for your consultation and treatment.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+     Testimonials Section
+     ======================================== -->
+  <section class="section-padding bg-secondary-custom">
+    <div class="container">
+      <div class="text-center max-w-600 mx-auto mb-5 reveal">
+        <span class="label-small">Testimonials</span>
+        <h2 class="mb-3">What Our Patients Say</h2>
+        <p class="text-muted-custom">Real stories from real patients</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="card testimonial-card h-100 reveal stagger-1">
+            <i class="bi bi-quote quote-icon fs-1"></i>
+            <p class="testimonial-content">
+              "The booking process was incredibly smooth. I found a great cardiologist and got an appointment within 2 days. Highly recommend!"
+            </p>
+            <div class="testimonial-author">
+              <img src="{% static 'images/testimonials/jennifer.jpg' %}" alt="Jennifer M." class="testimonial-avatar">
+              <div>
+                <p class="testimonial-name">Jennifer M.</p>
+                <p class="testimonial-role">Patient</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="card testimonial-card h-100 reveal stagger-2">
+            <i class="bi bi-quote quote-icon fs-1"></i>
+            <p class="testimonial-content">
+              "As a busy parent, being able to book pediatric appointments online is a game-changer. The reminders are super helpful too."
+            </p>
+            <div class="testimonial-author">
+              <img src="{% static 'images/testimonials/david.jpg' %}" alt="David K." class="testimonial-avatar">
+              <div>
+                <p class="testimonial-name">David K.</p>
+                <p class="testimonial-role">Parent</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="card testimonial-card h-100 reveal stagger-3">
+            <i class="bi bi-quote quote-icon fs-1"></i>
+            <p class="testimonial-content">
+              "MediCare made managing my elderly mother's healthcare so much easier. The platform is intuitive and the support team is excellent."
+            </p>
+            <div class="testimonial-author">
+              <img src="{% static 'images/testimonials/sarah.jpg' %}" alt="Sarah L." class="testimonial-avatar">
+              <div>
+                <p class="testimonial-name">Sarah L.</p>
+                <p class="testimonial-role">Caregiver</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="card testimonial-card h-100 reveal stagger-4">
+            <i class="bi bi-quote quote-icon fs-1"></i>
+            <p class="testimonial-content">
+              "I was skeptical about telemedicine, but the video consultation was professional and convenient. Saved me so much time!"
+            </p>
+            <div class="testimonial-author">
+              <img src="{% static 'images/testimonials/michael.jpg' %}" alt="Michael R." class="testimonial-avatar">
+              <div>
+                <p class="testimonial-name">Michael R.</p>
+                <p class="testimonial-role">Patient</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+     CTA Section
+     ======================================== -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="text-center max-w-700 mx-auto reveal">
+        <h2 class="cta-title">Ready to Take Control of Your Health?</h2>
+        <p class="cta-subtitle">
+          Join thousands of patients who trust MediCare for their healthcare needs.
+          Book your first appointment today.
+        </p>
+        <a href="{% url 'register' %}" class="btn btn-white btn-lg">
+          Get Started
+          <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+        <p class="cta-note">No registration fees. Cancel anytime.</p>
+      </div>
+    </div>
+  </section>
+
+  <script>
+  // Chatbot functionality
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (message) {
+      addMessage(message, 'user');
+      input.value = '';
+      // Simulate bot response
+      setTimeout(() => {
+        addMessage('Thank you for your message. Our team will get back to you shortly.', 'bot');
+      }, 1000);
+    }
+  }
+
+  function sendQuickMessage(text) {
+    addMessage(text, 'user');
+    setTimeout(() => {
+      addMessage('Thank you for your message. Our team will get back to you shortly.', 'bot');
+    }, 1000);
+  }
+
+  function addMessage(text, sender) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    const avatarIcon = sender === 'bot' ? '<i class="bi bi-robot"></i>' : '<i class="bi bi-person"></i>';
+    messageDiv.innerHTML = `
+      <div class="message-avatar ${sender}">${avatarIcon}</div>
+      <div class="message-bubble ${sender}">${text}</div>
+    `;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  // Allow Enter key to send message
+  const chatInput = document.getElementById('chatInput');
+  if (chatInput) {
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  }
+  </script>
+
+{% endblock content %}

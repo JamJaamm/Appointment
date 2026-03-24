@@ -1,0 +1,360 @@
+{% extends "user_header_footer.html" %}
+{% load static %}
+
+{% block title %}Book Appointment{% endblock %}
+
+{% block content %}
+
+<style>
+  .booking-container { 
+    max-width: 700px; 
+    margin: 0 auto; 
+    padding: 2rem 0;
+  }
+  
+  .booking-card {
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+  }
+  
+  .booking-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .booking-header h2 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--primary-blue);
+    margin-bottom: 0.5rem;
+  }
+  
+  .booking-header p {
+    color: var(--text-muted);
+    margin-bottom: 0;
+  }
+  
+  .form-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    transition: all 0.2s;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(0, 112, 160, 0.15);
+  }
+  
+  .doctor-option {
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .doctor-option:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--primary-blue);
+  }
+  
+  .doctor-option input[type="radio"] {
+    margin-top: 0.25rem;
+    accent-color: var(--primary-blue);
+  }
+  
+  .doctor-info {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+  
+  .doctor-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+  
+  .time-slot {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+  
+  .time-slot:hover {
+    background-color: var(--accent-cream);
+    border-color: var(--primary-blue);
+  }
+  
+  .time-slot.selected {
+    background-color: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+  }
+  
+  .btn-primary {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--primary-blue-dark);
+    border-color: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .alert {
+    border-radius: 8px;
+    border: none;
+  }
+  
+  .alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .form-text {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+  
+  .time-slots-loading {
+    text-align: center;
+    padding: 1rem;
+    color: var(--text-muted);
+  }
+</style>
+
+<div class="booking-container">
+  <div class="card booking-card p-4 p-md-5">
+    <div class="booking-header">
+      <h2><i class="fas fa-calendar-plus me-2"></i>Book an Appointment</h2>
+      <p>Schedule a visit with our expert doctors</p>
+    </div>
+
+    <form method="post" id="bookingForm">
+      {% csrf_token %}
+
+      <!-- Doctor Selection -->
+      <div class="mb-4">
+        <label class="form-label">
+          <i class="fas fa-user-md me-2" style="color: var(--primary-blue);"></i>Select Doctor
+        </label>
+        <div id="doctorsList">
+          {% for doctor in doctors %}
+            <label class="doctor-option">
+              <input type="radio" name="doctor" value="{{ doctor.id }}" required>
+              <div class="flex-grow-1">
+                <div class="doctor-name">Dr. {{ doctor.get_full_name }}</div>
+                <div class="doctor-info">
+                  {% if doctor.doctor %}
+                    <span><i class="fas fa-stethoscope me-1"></i>{{ doctor.doctor.speciality|default:"General" }}</span>
+                  {% endif %}
+                  {% if doctor.userinfo.phone_number %}
+                    <span class="ms-3"><i class="fas fa-phone me-1"></i>{{ doctor.userinfo.phone_number }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </label>
+          {% endfor %}
+          {% if not doctors %}
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>No doctors available at this moment.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Appointment Date -->
+      <div class="mb-4">
+        <label class="form-label" for="appointmentDate">
+          <i class="fas fa-calendar me-2" style="color: var(--primary-blue);"></i>Appointment Date
+        </label>
+        <input type="date" class="form-control" id="appointmentDate" name="appointment_date" required>
+        <small class="form-text">Please select a date at least one day from today</small>
+      </div>
+
+      <!-- Appointment Time -->
+      <div class="mb-4">
+        <label class="form-label">
+          <i class="fas fa-clock me-2" style="color: var(--primary-blue);"></i>Appointment Time
+        </label>
+        <div id="timeSlotsContainer" class="mb-2">
+          <p class="text-muted mb-0">Select a doctor and date first to see available times</p>
+        </div>
+        <input type="hidden" id="selectedTime" name="appointment_time">
+        <div id="selectedTimeDisplay" style="display:none; margin-top:0.75rem; padding: 0.75rem; background-color: var(--accent-cream); border-radius: 8px; color: var(--primary-blue);">
+          <i class="fas fa-check-circle me-2"></i>Selected time: <strong id="selectedTimeText"></strong>
+        </div>
+      </div>
+
+      <!-- Reason for Appointment -->
+      <div class="mb-4">
+        <label class="form-label" for="reason">
+          <i class="fas fa-list me-2" style="color: var(--primary-blue);"></i>Reason for Appointment
+        </label>
+        <textarea class="form-control" id="reason" name="reason" 
+                  placeholder="Please describe your symptoms or reason for the visit..." 
+                  rows="4" required></textarea>
+        <small class="form-text">Minimum 10 characters</small>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="fas fa-check-circle me-2"></i>Book Appointment
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // CSRF token helper
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  const appointmentDateInput = document.getElementById('appointmentDate');
+  const doctorRadios = document.querySelectorAll('input[name="doctor"]');
+  const timeSlotsContainer = document.getElementById('timeSlotsContainer');
+  const selectedTimeInput = document.getElementById('selectedTime');
+  const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
+  const selectedTimeText = document.getElementById('selectedTimeText');
+  const reasonTextarea = document.getElementById('reason');
+  const bookingForm = document.getElementById('bookingForm');
+
+  // Set minimum date to tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  appointmentDateInput.min = tomorrow.toISOString().split('T')[0];
+
+  // Fetch available times when date or doctor changes
+  async function loadAvailableTimes() {
+    const doctorId = document.querySelector('input[name="doctor"]:checked')?.value;
+    const date = appointmentDateInput.value;
+
+    if (!doctorId || !date) {
+      timeSlotsContainer.innerHTML = '<p class="text-muted mb-0">Select a date and doctor first</p>';
+      selectedTimeInput.value = '';
+      selectedTimeDisplay.style.display = 'none';
+      return;
+    }
+
+    // Loading state
+    timeSlotsContainer.innerHTML = `
+      <div class="time-slots-loading">
+        <div class="spinner-border" role="status" style="width: 1.5rem; height: 1.5rem; color: var(--primary-blue);">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 mb-0">Finding available times...</p>
+      </div>
+    `;
+
+    try {
+      const response = await fetch(`/get_available_times/?doctor_id=${doctorId}&date=${date}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Network error');
+      }
+      const data = await response.json();
+
+      if (data.times && data.times.length > 0) {
+        timeSlotsContainer.innerHTML = data.times.map(time => `
+          <span class="time-slot" onclick="selectTime(event, '${time}')" title="Select ${time}">${time}</span>
+        `).join('');
+      } else {
+        timeSlotsContainer.innerHTML = '<p class="text-muted mb-0"><i class="fas fa-exclamation-circle me-1"></i>No available times for this date. Please select another date.</p>';
+      }
+    } catch (error) {
+      console.error('Error loading times:', error);
+      timeSlotsContainer.innerHTML = `<p class="text-muted mb-0"><i class="fas fa-times-circle me-1"></i>Error loading available times: ${error.message}</p>`;
+    }
+  }
+
+  function selectTime(event, time) {
+    selectedTimeInput.value = time;
+    selectedTimeText.textContent = time;
+    selectedTimeDisplay.style.display = 'block';
+    document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+    if (event && event.currentTarget) {
+      event.currentTarget.classList.add('selected');
+    } else if (event && event.target) {
+      event.target.classList.add('selected');
+    }
+  }
+
+  appointmentDateInput.addEventListener('change', loadAvailableTimes);
+  doctorRadios.forEach(radio => radio.addEventListener('change', loadAvailableTimes));
+
+  // Validate form before submission
+  bookingForm.addEventListener('submit', function(e) {
+    if (reasonTextarea.value.trim().length < 10) {
+      e.preventDefault();
+      alert('Please provide a reason with at least 10 characters.');
+      reasonTextarea.focus();
+      return false;
+    }
+    if (!selectedTimeInput.value) {
+      e.preventDefault();
+      alert('Please select a time slot.');
+      return false;
+    }
+  });
+</script>
+{% endblock %}

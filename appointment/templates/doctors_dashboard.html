@@ -1,0 +1,435 @@
+{% extends "doctor_header_footer.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block title %}Doctors Dashboard{% endblock title %}
+
+{% block content %}
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header: Doctor info + notifications -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-3">
+            <div class="d-flex align-items-center gap-3">
+                    {% if userinfo.profile_picture %}
+                        <img id="docPhoto" src="{{ userinfo.profile_picture.url }}" alt="Doctor photo" class="profile-img" style="width: 56px; height: 56px;">
+                    {% else %}
+                        <img id="docPhoto" src="{% static 'images/avatar.png' %}" alt="Doctor photo" class="profile-img" style="width: 56px; height: 56px;">
+                    {% endif %}
+                <div>
+                    <h3 class="mb-0" style="font-family: var(--font-heading); font-weight: 600;">Dr. {{ user.first_name }} {{ user.last_name }}</h3>
+                    <div class="text-muted"> 
+                        <span style="color: var(--primary-blue); font-weight: 500;">{{ userinfo.speciality|default:'General' }}</span> 
+                        <span class="mx-2">|</span>
+                        <small><i class="fas fa-map-marker-alt me-1"></i>City Hospital</small>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="me-2 text-end d-none d-md-block">
+                    <small class="text-muted">Today</small>
+                    <div class="fw-bold" style="color: var(--primary-blue);">"Keep patient notes updated"</div>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-light position-relative" id="notifBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications" style="width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                        <i class="fas fa-bell" style="color: var(--primary-blue);"></i>
+                        <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.75rem; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">0</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notifBtn" style="min-width:300px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-lg);">
+                        <li><h6 class="dropdown-header" style="color: var(--primary-blue); font-family: var(--font-heading);">Notifications</h6></li>
+                        <div id="notifList"></div>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-center" href="#" style="color: var(--primary-blue);">View all</a></li>
+                    </ul>
+                </div>
+                <a href="{% url "doctors_message" %}" class="btn btn-light" title="Messages" style="width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                    <i class="fas fa-comments" style="color: var(--primary-blue);"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-md-3">
+                <div class="card stat-card-primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Patients This Week</h6>
+                                <h3 class="mb-0" id="statWeekly">{{ stat_weekly|default:0 }}</h3>
+                            </div>
+                            <i class="fas fa-users fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card stat-card-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Completed</h6>
+                                <h3 class="mb-0" id="statCompleted">{{ stat_completed|default:0 }}</h3>
+                            </div>
+                            <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card stat-card-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Upcoming</h6>
+                                <h3 class="mb-0" id="statUpcoming">{{ stat_upcoming|default:0 }}</h3>
+                            </div>
+                            <i class="fas fa-calendar-alt fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card stat-card-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Missed</h6>
+                                <h3 class="mb-0" id="statMissed">{{ stat_missed|default:0 }}</h3>
+                            </div>
+                            <i class="fas fa-times-circle fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls: Search & Filters -->
+        <div class="card p-4 mb-4">
+            <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
+                <div class="flex-grow-1" style="max-width: 420px;">
+                    <label class="form-label fw-bold" style="font-size: 0.875rem; color: var(--text-secondary);">Search</label>
+                    <div class="position-relative">
+                        <i class="fas fa-search position-absolute" style="left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                        <input id="searchInput" class="form-control" placeholder="Search patients by name or condition..." style="padding-left: 2.5rem; border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="max-width: 200px;">
+                    <label class="form-label fw-bold" style="font-size: 0.875rem; color: var(--text-secondary);">Date</label>
+                    <input id="filterDate" type="date" class="form-control" style="border-radius: 8px;">
+                </div>
+                <div style="max-width: 180px;">
+                    <label class="form-label fw-bold" style="font-size: 0.875rem; color: var(--text-secondary);">Status</label>
+                    <select id="filterStatus" class="form-select" style="border-radius: 8px;">
+                        <option value="">All statuses</option>
+                        <option>Pending</option>
+                        <option>Ongoing</option>
+                        <option>Completed</option>
+                        <option>Missed</option>
+                    </select>
+                </div>
+                <div class="ms-auto">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPatientModal" style="border-radius: 8px;">
+                        <i class="fas fa-user-plus me-2"></i>Add Patient
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patients Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" style="color: var(--primary-blue);">Patient Records</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 patient-table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>Appointment</th>
+                                <th>Condition</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientsTable">
+                            {% for patient in patients %}
+                            {% with patient_user=patient.user %}
+                            {% with latest_appt=patient.appointments.all|first %}
+                            <tr data-patient-id="{{ patient.id }}"
+                                data-patient-name="{{ patient_user.get_full_name|default:patient_user.username }}"
+                                data-patient-age="{{ patient.age|default:'N/A' }}"
+                                data-patient-gender="{{ patient_user.userinfo.gender|default:'N/A' }}"
+                                data-appt-date="{{ latest_appt.date|date:'Y-m-d H:i' }}"
+                                data-appt-status="{{ latest_appt.get_status_display }}"
+                                data-reason="{{ latest_appt.reason|default:'Routine checkup' }}">
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if patient_user.userinfo.profile_picture and patient_user.userinfo.profile_picture.name %}
+                                            <img src="{{ patient_user.userinfo.profile_picture.url }}" class="rounded-circle" width="50" height="50" alt="{{ patient_user.get_full_name }}" style="border: 2px solid var(--accent-cream);">
+                                        {% else %}
+                                            <img src="https://i.pravatar.cc/60?u={{ patient_user.id }}" class="rounded-circle" width="50" height="50" alt="{{ patient_user.get_full_name }}" style="border: 2px solid var(--accent-cream);">
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold">{{ patient_user.get_full_name|default:patient_user.username }}</div>
+                                            <div class="text-muted small">{{ patient_user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ patient.age|default:'N/A' }}</td>
+                                <td>{{ patient_user.userinfo.gender|default:'N/A' }}</td>
+                                <td>{{ latest_appt.date|date:"M d, Y h:i A" }}</td>
+                                <td>{{ latest_appt.reason|default:'Routine checkup'|truncatechars:30 }}</td>
+                                <td>
+                                    <span class="badge status-badge" style="
+                                        {% if latest_appt.status == 'completed' %}background-color: #198754;
+                                        {% elif latest_appt.status == 'pending' %}background-color: #ffc107; color: #1f1f1f;
+                                        {% elif latest_appt.status == 'cancelled' %}background-color: #6c757d;
+                                        {% else %}background-color: var(--primary-blue);
+                                        {% endif %} border-radius: 16px; padding: 0.5rem 1rem;">
+                                        {{ latest_appt.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="viewPatient({{ patient.id }})" style="border-radius: 6px;">
+                                        <i class='fas fa-eye'></i> View Details
+                                    </button>
+                                    {% if latest_appt.date > now %}
+                                        <button class="btn btn-sm btn-outline-success me-1" onclick="openEditAppt({{ patient.id }}, '{{ latest_appt.date|date:"Y-m-d" }}', '{{ latest_appt.date|date:"H:i" }}')" style="border-radius: 6px;">
+                                            <i class='fas fa-edit'></i> Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="markMissed({{ patient.id }})" style="border-radius: 6px;">
+                                            <i class='fas fa-ban'></i> Mark Missed
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% endwith %}
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="fas fa-inbox fa-3x mb-3 d-block" style="color: var(--text-light);"></i>
+                                    No patients registered yet. Patients will appear here after they book an appointment.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Details Modal -->
+        <div class="modal fade" id="viewPatientModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+              <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                <h5 class="modal-title" style="font-family: var(--font-heading); color: var(--primary-blue);">Patient Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body" id="viewPatientBody"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Appointment Modal -->
+        <div class="modal fade" id="editApptModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+              <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                <h5 class="modal-title" style="font-family: var(--font-heading); color: var(--primary-blue);">Edit Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <form id="editApptForm">
+                  <input type="hidden" id="editPatientId">
+                  <div class="mb-3">
+                      <label class="form-label">Date</label>
+                      <input id="editApptDate" type="date" class="form-control" required style="border-radius: 8px;">
+                  </div>
+                  <div class="mb-3">
+                      <label class="form-label">Time</label>
+                      <input id="editApptTime" type="time" class="form-control" required style="border-radius: 8px;">
+                  </div>
+                  <div class="text-end">
+                      <button class="btn btn-primary" type="submit" style="border-radius: 8px;">Save Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages placeholder -->
+        <div class="mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="mb-3" style="color: var(--primary-blue); font-family: var(--font-heading);">
+                        <i class="fas fa-comments me-2"></i>Messages
+                    </h6>
+                    <p class="mb-0 text-muted">Quick access to patient messages will appear here (placeholder).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Patient Modal -->
+    <div class="modal fade" id="addPatientModal" tabindex="-1" aria-labelledby="addPatientModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" id="addPatientModalLabel" style="font-family: var(--font-heading); color: var(--primary-blue);">Add New Patient</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addPatientForm">
+                        <div class="mb-3">
+                            <label for="patientName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="patientName" required style="border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientAge" class="form-label">Age</label>
+                            <input type="number" class="form-control" id="patientAge" required style="border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientLastVisit" class="form-label">Last Visit</label>
+                            <input type="text" class="form-control" id="patientLastVisit" required style="border-radius: 8px;">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" style="border-radius: 8px;">Add Patient</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Patient data from server is already rendered in the table
+    // We'll use data attributes for filtering/search functionality
+
+    function filterPatients() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const filterDate = document.getElementById('filterDate').value;
+        const filterStatus = document.getElementById('filterStatus').value;
+        const rows = document.querySelectorAll('#patientsTable tr[data-patient-id]');
+
+        rows.forEach(row => {
+            const name = (row.dataset.patientName || '').toLowerCase();
+            const condition = (row.dataset.reason || '').toLowerCase();
+            const apptDate = row.dataset.apptDate || '';
+            const status = (row.dataset.apptStatus || '').toLowerCase();
+
+            let show = true;
+
+            // Search filter
+            if (search && !(name.includes(search) || condition.includes(search))) {
+                show = false;
+            }
+
+            // Date filter
+            if (filterDate && !apptDate.startsWith(filterDate)) {
+                show = false;
+            }
+
+            // Status filter
+            if (filterStatus && status !== filterStatus.toLowerCase()) {
+                show = false;
+            }
+
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    function viewPatient(id) {
+        const row = document.querySelector(`#patientsTable tr[data-patient-id="${id}"]`);
+        if (!row) return;
+
+        const name = row.dataset.patientName;
+        const age = row.dataset.patientAge;
+        const gender = row.dataset.patientGender;
+        const apptDate = row.dataset.apptDate;
+        const status = row.dataset.apptStatus;
+        const reason = row.dataset.reason;
+
+        // Find patient image
+        const img = row.querySelector('img');
+        const imgSrc = img ? img.src : 'https://i.pravatar.cc/150?u=' + id;
+
+        const formattedDate = new Date(apptDate).toLocaleString();
+
+        document.getElementById('viewPatientBody').innerHTML = `
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <img src="${imgSrc}" class="rounded-circle mb-3" width="120" height="120" style="border: 3px solid var(--accent-cream);">
+                    <h5 class="mb-0" style="font-family: var(--font-heading);">${name}</h5>
+                    <small class="text-muted">${age} • ${gender}</small>
+                </div>
+                <div class="col-md-8">
+                    <p><strong>Appointment:</strong> ${formattedDate}</p>
+                    <p><strong>Reason:</strong> ${reason}</p>
+                    <p><strong>Status:</strong> ${status}</p>
+                    <hr style="border-color: var(--border-color);">
+                    <p><strong>Notes & History</strong></p>
+                    <p class="text-muted">No historical records available.</p>
+                </div>
+            </div>
+        `;
+        new bootstrap.Modal(document.getElementById('viewPatientModal')).show();
+    }
+
+    function openEditAppt(patientId, currentDate, currentTime) {
+        document.getElementById('editPatientId').value = patientId;
+        document.getElementById('editApptDate').value = currentDate;
+        document.getElementById('editApptTime').value = currentTime;
+        new bootstrap.Modal(document.getElementById('editApptModal')).show();
+    }
+
+    document.getElementById('editApptForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = parseInt(document.getElementById('editPatientId').value, 10);
+        const date = document.getElementById('editApptDate').value;
+        const time = document.getElementById('editApptTime').value;
+
+        // This would normally make an AJAX call to update the appointment
+        alert('Edit appointment functionality: This would update appointment ' + id + ' to ' + date + ' ' + time);
+        bootstrap.Modal.getInstance(document.getElementById('editApptModal')).hide();
+    });
+
+    function markMissed(id) {
+        if (!confirm('Mark this appointment as missed?')) return;
+        // This would normally make an AJAX call to mark the appointment as missed
+        alert('Mark patient ' + id + ' as missed - This would update the database');
+    }
+
+    // Notifications demo
+    let notifications = [
+        {id:1, text:'Upcoming appointment reminder', seen:false},
+        {id:2, text:'New patient registration', seen:false}
+    ];
+    function renderNotifs() {
+        const list = document.getElementById('notifList');
+        list.innerHTML = '';
+        notifications.forEach(n => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a class='dropdown-item' href='#' style="color: var(--text-secondary);">${n.text}</a>`;
+            list.appendChild(li);
+        });
+        const unseen = notifications.filter(n=>!n.seen).length;
+        document.getElementById('notifBadge').textContent = unseen;
+        document.getElementById('notifBadge').style.display = unseen? 'inline-block':'none';
+    }
+
+    // Filters & search
+    document.getElementById('searchInput').addEventListener('input', filterPatients);
+    document.getElementById('filterDate').addEventListener('change', filterPatients);
+    document.getElementById('filterStatus').addEventListener('change', filterPatients);
+
+    // Initialize
+    renderNotifs();
+    </script>
+{% endblock content %}

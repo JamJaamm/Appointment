@@ -1,0 +1,138 @@
+{% extends "admin_header_footer.html" %}
+{% load static %}
+
+{% block title %}Manage Doctors{% endblock %}
+
+{% block content %}
+
+<div class="main-content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 style="font-family: var(--font-heading); font-weight: 600; color: var(--primary-blue); margin-bottom: 0.25rem;">
+                <i class="fas fa-user-md me-2"></i>Manage Doctors
+            </h2>
+            <p class="text-muted mb-0">View and manage all registered doctors</p>
+        </div>
+        <span class="badge" style="background-color: var(--primary-blue); padding: 0.5rem 1rem; border-radius: 16px; font-size: 0.875rem;">
+            {{ doctors.count }} Doctors
+        </span>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="filter-group">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size: 0.875rem; color: var(--text-secondary);">Search</label>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <form method="get" class="d-flex gap-2">
+                        <input type="text" name="search" class="form-control" placeholder="Search by name, email, or phone..." value="{{ search_query }}" style="border-radius: 8px;">
+                        <button type="submit" class="btn btn-primary" style="border-radius: 8px;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold" style="font-size: 0.875rem; color: var(--text-secondary);">Filter by Status</label>
+                <form method="get" class="d-flex gap-2">
+                    <input type="hidden" name="search" value="{{ search_query }}">
+                    <select name="status" class="form-select" onchange="this.form.submit();" style="border-radius: 8px;">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Doctors</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+                        <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Blocked Only</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctors Grid -->
+    <div class="row g-4">
+        {% for doctor in doctors %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card doctor-card h-100" style="transition: all 0.2s; cursor: pointer;">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        {% if doctor.userinfo.profile_picture and doctor.userinfo.profile_picture.name %}
+                            <img src="{{ doctor.userinfo.profile_picture.url }}" alt="{{ doctor.get_full_name }}" 
+                                 class="doctor-avatar" 
+                                 style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 3px solid var(--accent-cream); box-shadow: var(--shadow-md);">
+                        {% else %}
+                            <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; box-shadow: var(--shadow-md);">
+                                <span style="font-size: 2rem; font-weight: 600; color: white;">{{ doctor.get_full_name|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="card-title mb-1" style="font-family: var(--font-heading); font-weight: 600; color: var(--text-primary);">{{ doctor.get_full_name }}</h5>
+                    
+                    {% if doctor.doctor %}
+                        <span class="speciality-badge" style="display: inline-block; background-color: var(--accent-cream); color: var(--primary-blue); padding: 0.375rem 0.875rem; border-radius: 20px; font-size: 0.875rem; margin-top: 0.5rem; font-weight: 500;">
+                            {{ doctor.doctor.speciality|default:"General" }}
+                        </span>
+                    {% endif %}
+                    
+                    <div class="mt-3 mb-2">
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-2" style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <i class="fas fa-envelope" style="color: var(--primary-blue);"></i>
+                            <span>{{ doctor.email }}</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center gap-2" style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <i class="fas fa-phone" style="color: var(--primary-blue);"></i>
+                            <span>{% if doctor.userinfo and doctor.userinfo.phone_number %}{{ doctor.userinfo.phone_number }}{% else %}—{% endif %}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        {% if doctor.is_active %}
+                            <span class="badge" style="background-color: #198754; padding: 0.5rem 1rem; border-radius: 16px; font-size: 0.875rem;">Active</span>
+                        {% else %}
+                            <span class="badge" style="background-color: #dc3545; padding: 0.5rem 1rem; border-radius: 16px; font-size: 0.875rem;">Blocked</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <a href="{% url 'doctors_profile' %}" class="btn btn-sm btn-outline-primary" title="View Profile" style="border-radius: 8px;">
+                            <i class="fas fa-eye me-1"></i> View
+                        </a>
+                        {% if doctor.is_active %}
+                            <a href="{% url 'admin_block_user' doctor.id %}" class="btn btn-sm btn-outline-warning" title="Block" onclick="return confirm('Block this doctor?');" style="border-radius: 8px;">
+                                <i class="fas fa-ban me-1"></i> Block
+                            </a>
+                        {% else %}
+                            <a href="{% url 'admin_unblock_user' doctor.id %}" class="btn btn-sm btn-outline-success" title="Unblock" onclick="return confirm('Unblock this doctor?');" style="border-radius: 8px;">
+                                <i class="fas fa-check me-1"></i> Unblock
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'admin_delete_user' doctor.id %}" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Delete this doctor? This action cannot be undone.');" style="border-radius: 8px;">
+                            <i class="fas fa-trash me-1"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card" style="border-radius: 16px;">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-user-md fa-4x mb-3" style="color: var(--text-light);"></i>
+                    <h5 class="text-muted">No doctors found</h5>
+                    <p class="text-muted">No doctors match your search criteria.</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .doctor-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+</style>
+
+{% endblock %}
