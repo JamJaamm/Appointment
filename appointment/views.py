@@ -25,7 +25,7 @@ import random, string
 # Use smtplib and MIMEText for direct SMTP to Mailpit
 import smtplib
 from email.mime.text import MIMEText
-from .utils import send_verification_email
+from .utils import send_verification_email, send_welcome_email
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 import uuid
@@ -270,9 +270,6 @@ def resend_verification(request):
 def verify_email(request):
     return render(request, 'verify_email.html')
 
-
-
-
 def verify_email_view(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
@@ -289,13 +286,22 @@ def verify_email_view(request, uidb64, token):
         user.userinfo.email_token_expiry = None
         user.save()
         user.userinfo.save()
-        
+
+        # Send welcome email
+        try:
+            is_doctor = user.is_staff
+            send_welcome_email(user, is_doctor=is_doctor)
+        except Exception as e:
+            # Log error but don't fail the verification
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send welcome email: {e}")
+
         # Check if there's a pending redirect (e.g., booking page)
         next_url = request.session.pop('next_after_verification', None)
         if next_url:
             messages.success(request, 'Email verified successfully! Please login to continue.')
             return redirect(f'{reverse("login")}?next={next_url}')
-        
+
         messages.success(request, 'Email verified successfully! You can now login.')
         return redirect('login')
 
@@ -314,11 +320,7 @@ def book_appointmentpage(request):
 
 
 def initiate_booking(request):
-    """
-    Handle booking initiation from homepage.
-    Redirects authenticated users to booking page,
-    and unauthenticated users to login/register selection.
-    """
+
     if request.user.is_authenticated:
         # User is logged in, redirect to booking page
         if request.user.is_staff:
@@ -350,8 +352,7 @@ def user_dashboardpage(request):
     if patient:
         # Get all appointments for this patient
         all_appointments = zoom_appointment.objects.filter(
-            patient=patient,
-            admin_status='approved'
+            patient=patient
         ).select_related('doctor', 'doctor__userinfo').order_by('-date')
         
         # Upcoming appointments (future or today)
@@ -415,8 +416,7 @@ def doctors_profilepage(request):
     from django.utils import timezone
     now = timezone.now()
     appointments = zoom_appointment.objects.filter(
-        doctor=user,
-        admin_status='approved'
+        doctor=user
     ).select_related('patient', 'patient__user', 'patient__user__userinfo').order_by('-date')[:10]
     
     # Build appointments data for the template
@@ -455,15 +455,18 @@ def doctor_editprofilepage(request):
         dob = request.POST.get('dob', '').strip()
         gender = request.POST.get('gender', '').strip()
         location = request.POST.get('location', '').strip()
-        speciality = request.POST.get('speciality', '').strip() 
-        profile_photo = request.FILES.get('profile_photo', None) 
+        speciality = request.POST.get('speciality', '').strip()
+        profile_photo = request.FILES.get('profile_photo', None)
         yearsOfExperience = request.POST.get('yearsOfExperience', '').strip()
+        bio = request.POST.get('bio', '').strip()
+        education = request.POST.get('education', '').strip()
+        certifications = request.POST.get('certifications', '').strip()
 
         if first_name:
             user.first_name = first_name
         if last_name:
             user.last_name = last_name
-        
+
         # Email uniqueness check
         if email and email != user.email:
             if User.objects.filter(email=email).exclude(pk=user.pk).exists():
@@ -475,29 +478,32 @@ def doctor_editprofilepage(request):
 
         # Update UserInfo fields
         userinfo, _ = UserInfo.objects.get_or_create(user=user)
-        
+
         if phone:
             userinfo.phone_number = phone
-            
+
         if dob:
             userinfo.dob = dob
-            
+
         if gender:
             userinfo.gender = gender
-            
+
         if location:
             userinfo.location = location
 
         yearsOfExperience = request.POST.get('yearsOfExperience', '').strip()
         if yearsOfExperience:
-            userinfo.yearsOfExperience = yearsOfExperience      
-        
-        # if yearsOfExperience:
-        #     userinfo.yearsOfExperience = yearsOfExperience
-            
+            userinfo.yearsOfExperience = yearsOfExperience
+
         # Handle profile picture
         if request.FILES.get('profile_photo'):
             userinfo.profile_picture = request.FILES.get('profile_photo')
+
+        # Update bio, education, and certifications (allow empty strings)
+        userinfo.bio = bio
+        userinfo.education = education
+        userinfo.certifications = certifications
+
         userinfo.save()
 
         speciality = request.POST.get('speciality', '').strip()
@@ -616,10 +622,9 @@ def edit_userprofilepage(request, id=None):
 def doctors_dashboardpage(request):
     userinfo = getattr(request.user, 'userinfo', None)
 
-    # Fetch all appointments for this doctor (approved by admin)
+    # Fetch all appointments for this doctor
     appointments = zoom_appointment.objects.filter(
-        doctor=request.user,
-        admin_status='approved'
+        doctor=request.user
     ).select_related('patient', 'patient__user', 'patient__user__userinfo').order_by('-date')
 
     # Build patient list from appointments (unique patients)
@@ -654,7 +659,6 @@ def doctors_dashboardpage(request):
 
 @login_required
 def reminderspage(request):
-    """Doctor reminders page - shows appointments and allows sending reminders to patients."""
     if not request.user.is_staff:
         return redirect('user_dashboard')
     
@@ -665,15 +669,13 @@ def reminderspage(request):
     now = timezone.now()
     appointments = zoom_appointment.objects.filter(
         doctor=request.user,
-        admin_status='approved',
         status__in=['pending', 'approved'],
         date__gte=now
     ).select_related('patient', 'patient__user').order_by('date')[:20]
-    
+
     # Get all patients this doctor has seen
     patient_ids = zoom_appointment.objects.filter(
-        doctor=request.user,
-        admin_status='approved'
+        doctor=request.user
     ).values_list('patient_id', flat=True).distinct()
     patients = Patient.objects.filter(
         id__in=patient_ids
@@ -687,7 +689,6 @@ def reminderspage(request):
 
 @login_required
 def user_reminderspage(request):
-    """Patient reminders page - view appointments and send reminders to doctors."""
     if request.user.is_staff:
         return redirect('doctors_dashboard')
 
@@ -725,7 +726,6 @@ def user_reminderspage(request):
 
 @login_required
 def send_reminder_to_doctor(request):
-    """Send a reminder/message to a doctor via email and internal messaging."""
     if request.user.is_staff:
         return redirect('doctors_dashboard')
 
@@ -851,7 +851,6 @@ MediCare Clinic Team
 
 @login_required
 def create_reminder(request):
-    """Create a new reminder for the patient."""
     if request.user.is_staff:
         return redirect('doctors_dashboard')
 
@@ -897,7 +896,6 @@ def create_reminder(request):
 
 @login_required
 def update_reminder(request, reminder_id):
-    """Update an existing reminder."""
     if request.user.is_staff:
         return redirect('doctors_dashboard')
 
@@ -944,7 +942,6 @@ def update_reminder(request, reminder_id):
 
 @login_required
 def delete_reminder(request, reminder_id):
-    """Delete a reminder."""
     if request.user.is_staff:
         return redirect('doctors_dashboard')
 
@@ -986,14 +983,8 @@ def prescriptions_page(request):
         # User is a doctor - show prescriptions they can create and view
         userinfo = getattr(request.user, 'userinfo', None)
 
-        # Get all patients this doctor has treated (via appointments)
-        patient_ids = zoom_appointment.objects.filter(
-            doctor=request.user,
-            admin_status='approved'
-        ).values_list('patient_id', flat=True).distinct()
-        patients = Patient.objects.filter(
-            id__in=patient_ids
-        ).select_related('user', 'user__userinfo').order_by('user__first_name')
+        # Get all patients in the system (doctors can prescribe to any patient)
+        patients = Patient.objects.all().select_related('user', 'user__userinfo').order_by('user__first_name')
 
         # Get all prescriptions by this doctor
         prescriptions = Prescription.objects.filter(
@@ -1028,14 +1019,8 @@ def create_prescription(request):
     # Get patient_id from query params if provided (for pre-selection)
     selected_patient_id = request.GET.get('patient_id')
 
-    # Get all patients this doctor has treated (via appointments)
-    patient_ids = zoom_appointment.objects.filter(
-        doctor=request.user,
-        admin_status='approved'
-    ).values_list('patient_id', flat=True).distinct()
-    patients = Patient.objects.filter(
-        id__in=patient_ids
-    ).select_related('user', 'user__userinfo').order_by('user__first_name')
+    # Get all patients in the system (doctors can prescribe to any patient)
+    patients = Patient.objects.all().select_related('user', 'user__userinfo').order_by('user__first_name')
 
     if request.method == 'POST':
         patient_id = request.POST.get('patient_id')
@@ -1128,6 +1113,33 @@ def update_prescription_status(request, prescription_id):
 
 
 @login_required
+def toggle_prescription_status(request, prescription_id):
+    """Allow doctors to toggle prescription between active and completed."""
+    if not hasattr(request.user, 'doctor'):
+        messages.error(request, 'Access denied. Doctors only.')
+        return redirect('home')
+
+    try:
+        prescription = Prescription.objects.get(id=prescription_id, doctor=request.user)
+    except Prescription.DoesNotExist:
+        messages.error(request, 'Prescription not found.')
+        return redirect('prescriptions')
+
+    if request.method == 'POST':
+        # Toggle between active and completed
+        if prescription.status == 'active':
+            prescription.status = 'completed'
+            messages.success(request, 'Prescription marked as completed.')
+        else:
+            prescription.status = 'active'
+            messages.success(request, 'Prescription marked as active.')
+        
+        prescription.save()
+
+    return redirect('prescriptions')
+
+
+@login_required
 def delete_prescription(request, prescription_id):
     """Allow doctors to delete a prescription."""
     if not hasattr(request.user, 'doctor'):
@@ -1182,19 +1194,18 @@ def doctors_messagepage(request):
     if not hasattr(request.user, 'doctor'):
         messages.error(request, 'Access denied. Doctors only.')
         return redirect('home')
-    
+
     # Get all messages where the doctor is the recipient
     messages_list = Message.objects.filter(recipient=request.user).select_related('sender', 'sender__userinfo')
-    
-    # Get unique senders (patients who messaged this doctor)
-    unique_senders = messages_list.values('sender').distinct()
-    patients = User.objects.filter(id__in=unique_senders).select_related('userinfo', 'patient')
-    
+
+    # Get all patients in the system (doctors can message any patient)
+    patients = Patient.objects.all().select_related('user', 'user__userinfo').order_by('user__first_name')
+
     # Get unread message count
     unread_count = messages_list.filter(is_read=False).count()
-    
+
     userinfo = getattr(request.user, 'userinfo', None)
-    
+
     return render(request, 'doctors_message.html', {
         'messages': messages_list,
         'patients': patients,
@@ -1416,8 +1427,7 @@ def mark_message_as_read(request, message_id):
 def doctors_patientspage(request):
     # Get all patients who have appointments with this doctor
     patient_ids = zoom_appointment.objects.filter(
-        doctor=request.user,
-        admin_status='approved'
+        doctor=request.user
     ).values_list('patient_id', flat=True).distinct()
 
     patients = Patient.objects.filter(
@@ -1531,16 +1541,113 @@ def patient_detail(request, patient_id):
 
 @login_required
 def meetingpage(request):
+    """Patient meeting page - shows upcoming appointment with meeting details from doctor."""
+    if request.user.is_staff:
+        return redirect('doctors_meeting')
     
-    return render(request, 'meeting.html')
+    try:
+        patient = request.user.patient
+    except:
+        messages.error(request, 'Patient profile not found.')
+        return redirect('user_dashboard')
+    
+    # Get the next upcoming appointment with meeting details OR Zoom link
+    from django.utils import timezone
+    now = timezone.now()
+    
+    # First try: upcoming appointment with meeting details posted by doctor
+    appointment = zoom_appointment.objects.filter(
+        patient=patient,
+        status__in=['approved', 'completed'],
+        date__gte=now,
+    ).exclude(
+        zoom_meeting_id__isnull=True
+    ).order_by('date').first()
+    
+    # Second try: upcoming appointment with Zoom link
+    if not appointment:
+        appointment = zoom_appointment.objects.filter(
+            patient=patient,
+            status__in=['approved', 'completed'],
+            date__gte=now,
+            zoom_join_url__isnull=False
+        ).exclude(zoom_join_url='').order_by('date').first()
+    
+    # Third try: most recent appointment with meeting details
+    if not appointment:
+        appointment = zoom_appointment.objects.filter(
+            patient=patient,
+            status__in=['approved', 'completed'],
+        ).exclude(
+            zoom_meeting_id__isnull=True
+        ).order_by('-date').first()
+    
+    # Fourth try: most recent past appointment with Zoom
+    if not appointment:
+        appointment = zoom_appointment.objects.filter(
+            patient=patient,
+            status__in=['approved', 'completed'],
+            zoom_join_url__isnull=False
+        ).exclude(zoom_join_url='').order_by('-date').first()
+    
+    return render(request, 'meeting.html', {
+        'appointment': appointment,
+    })
 
 
 @login_required
 def doctors_meetingpage(request):
-
-    # if not request.user.is_staff:
-    #     return HttpResponse('Forbidden', status=403)
-    return render(request, 'doctors_meeting.html')
+    """Doctor meeting page - post meeting details for appointments."""
+    if not request.user.is_staff:
+        return redirect('home')
+    
+    from django.utils import timezone
+    now = timezone.now()
+    
+    # Get ALL doctor's appointments (for any patient) with Zoom links
+    all_appointments = zoom_appointment.objects.filter(
+        doctor=request.user,
+        status__in=['approved', 'completed', 'pending']
+    ).order_by('-date')[:50]
+    
+    # Get recent appointments with meeting details posted
+    recent_appointments = zoom_appointment.objects.filter(
+        doctor=request.user,
+        meeting_details__isnull=False
+    ).exclude(meeting_details='').order_by('-meeting_details_updated_at')[:5]
+    
+    if request.method == 'POST':
+        appointment_id = request.POST.get('appointment_id')
+        zoom_meeting_id = request.POST.get('zoom_meeting_id')
+        zoom_join_url = request.POST.get('zoom_join_url')
+        meeting_details = request.POST.get('meeting_details')
+        
+        if not appointment_id or not zoom_meeting_id:
+            messages.error(request, 'Please select an appointment and enter Meeting ID.')
+        else:
+            try:
+                appointment = zoom_appointment.objects.get(
+                    id=appointment_id,
+                    doctor=request.user
+                )
+                # Update meeting details
+                appointment.zoom_meeting_id = zoom_meeting_id
+                if zoom_join_url:
+                    appointment.zoom_join_url = zoom_join_url
+                if meeting_details:
+                    appointment.meeting_details = meeting_details
+                    appointment.meeting_details_updated_at = timezone.now()
+                appointment.save()
+                messages.success(request, f'Meeting details saved for {appointment.patient.user.get_full_name()}.')
+            except zoom_appointment.DoesNotExist:
+                messages.error(request, 'Appointment not found.')
+        
+        return redirect('doctors_meeting')
+    
+    return render(request, 'doctors_meeting.html', {
+        'all_appointments': all_appointments,
+        'recent_appointments': recent_appointments,
+    })
 
 
 def termspage(request):
@@ -1557,10 +1664,9 @@ def doctors_appointmenthistorypage(request):
     # Import here to avoid circular imports in some environments
     from .models import zoom_appointment
 
-    # Only show appointments that have been approved by admin
+    # Show all appointments for this doctor
     appointments = zoom_appointment.objects.filter(
-        doctor=request.user,
-        admin_status='approved'  # Only show appointments approved by admin
+        doctor=request.user
     ).select_related('patient__user').order_by('-date')
     return render(request, 'doctors_appointmenthistory.html', {
         'appointments': appointments,
@@ -2026,27 +2132,48 @@ def check_appointment_overlap(doctor, start_datetime, duration, exclude_appointm
 
 
 def get_doctor_availability(doctor, date):
-
+    """Get available time slots for a doctor on a specific date."""
+    from .models import DoctorAvailability
+    
     date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+    day_name = date_obj.strftime('%A')  # e.g., 'Monday'
     available_times = []
 
-    # Working hours: 9 AM to 5 PM
-    start_hour = 9
-    end_hour = 17
+    # Get doctor's availability for this day of week
+    availabilities = DoctorAvailability.objects.filter(
+        doctor=doctor,
+        day_of_week=day_name,
+        is_active=True
+    ).order_by('start_time')
+
+    # If no specific availability set, use default working hours (9 AM - 5 PM)
+    if not availabilities.exists():
+        start_hour = 9
+        end_hour = 17
+        time_ranges = [(time(start_hour, 0), time(end_hour, 0))]
+    else:
+        time_ranges = [(avail.start_time, avail.end_time) for avail in availabilities]
+
     slot_duration = 30  # minutes
 
-    for hour in range(start_hour, end_hour):
-        for minute in [0, 30]:
-            slot_datetime = datetime.combine(date_obj, time(hour, minute))
+    for start_time, end_time in time_ranges:
+        # Generate 30-minute slots within this time range
+        current_time = start_time
+        while current_time < end_time:
+            slot_datetime = datetime.combine(date_obj, current_time)
             slot_time = timezone.make_aware(slot_datetime) if timezone.is_naive(slot_datetime) else slot_datetime
 
             # Skip past times
             if slot_time <= timezone.now():
+                current_time = (datetime.combine(date_obj, current_time) + timedelta(minutes=slot_duration)).time()
                 continue
 
-            # Check if slot is available
+            # Check if slot is already booked
             if not check_appointment_overlap(doctor, slot_time, slot_duration):
-                available_times.append(slot_time.strftime('%H:%M'))
+                available_times.append(current_time.strftime('%H:%M'))
+
+            # Move to next slot
+            current_time = (datetime.combine(date_obj, current_time) + timedelta(minutes=slot_duration)).time()
 
     return available_times
 
@@ -2114,10 +2241,9 @@ def doctorbook_appointment(request):
                 date=appointment_datetime,
                 reason=reason,
                 duration=30,
-                status='pending',
-                admin_status='pending'  # New field for admin approval
+                status='pending'  # Pending doctor approval
             )
-            message = f'Appointment booked successfully with Dr. {doctor.get_full_name()}. Status: Pending admin approval.'
+            message = f'Appointment booked successfully with Dr. {doctor.get_full_name()}. Status: Pending doctor approval.'
             redirect_url = reverse('patient_appointments')
             return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
         except Exception as e:
@@ -2280,10 +2406,9 @@ def doctor_appointments(request):
     if not request.user.is_staff:
         return redirect('user_dashboard')
 
-    # Get appointments for this doctor that have been approved by admin
+    # Get appointments for this doctor
     appointments = zoom_appointment.objects.filter(
-        doctor=request.user,
-        admin_status='approved'  # Only show appointments approved by admin
+        doctor=request.user
     ).select_related('patient', 'patient__user', 'patient__user__userinfo')
 
     # Search filter
@@ -2332,16 +2457,26 @@ def approve_appointment(request, appointment_id):
         appointment = zoom_appointment.objects.get(
             pk=appointment_id,
             doctor=request.user,
-            status='pending',
-            admin_status='approved'  # Only allow approving if admin has approved
+            status='pending'
         )
         appointment.status = 'approved'
+        
+        # Create Zoom meeting if not already created
+        if not appointment.zoom_join_url:
+            topic = f"Consultation - {appointment.patient.user.get_full_name()}"
+            start_time = appointment.date
+            meeting = create_zoom_meeting(topic, start_time, duration=appointment.duration or 30)
+            if meeting:
+                appointment.zoom_meeting_id = meeting.get('id', '')
+                appointment.zoom_join_url = meeting.get('join_url', '')
+                appointment.zoom_start_url = meeting.get('start_url', '')
+        
         appointment.save()
         message = f'Appointment with {appointment.patient.user.get_full_name()} approved.'
         redirect_url = reverse('doctor_appointments')
         return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
     except zoom_appointment.DoesNotExist:
-        messages.error(request, 'Appointment not found, already processed, or not approved by admin yet.')
+        messages.error(request, 'Appointment not found or already processed.')
 
     return redirect('doctor_appointments')
 
@@ -2359,8 +2494,7 @@ def decline_appointment(request, appointment_id):
             appointment = zoom_appointment.objects.get(
                 pk=appointment_id,
                 doctor=request.user,
-                status='pending',
-                admin_status='approved'  # Only allow declining if admin has approved
+                status='pending'
             )
             appointment.status = 'cancelled'
             appointment.reschedule_reason = decline_reason  # Store reason
@@ -2369,7 +2503,7 @@ def decline_appointment(request, appointment_id):
             redirect_url = reverse('doctor_appointments')
             return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
         except zoom_appointment.DoesNotExist:
-            messages.error(request, 'Appointment not found or not approved by admin yet.')
+            messages.error(request, 'Appointment not found or already processed.')
 
         return redirect('doctor_appointments')
 
@@ -2378,11 +2512,10 @@ def decline_appointment(request, appointment_id):
         appointment = zoom_appointment.objects.get(
             pk=appointment_id,
             doctor=request.user,
-            status='pending',
-            admin_status='approved'  # Only allow declining if admin has approved
+            status='pending'
         )
     except zoom_appointment.DoesNotExist:
-        messages.error(request, 'Appointment not found or not approved by admin yet.')
+        messages.error(request, 'Appointment not found or already processed.')
         return redirect('doctor_appointments')
 
     return render(request, 'decline_appointment.html', {'appointment': appointment})
@@ -2401,8 +2534,7 @@ def request_reschedule(request, appointment_id):
             appointment = zoom_appointment.objects.get(
                 pk=appointment_id,
                 doctor=request.user,
-                status__in=['pending', 'approved'],
-                admin_status='approved'  # Only allow rescheduling if admin has approved
+                status__in=['pending', 'approved']
             )
             appointment.status = 'reschedule_requested'
             appointment.reschedule_reason = reschedule_reason
@@ -2411,7 +2543,7 @@ def request_reschedule(request, appointment_id):
             redirect_url = reverse('doctor_appointments')
             return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
         except zoom_appointment.DoesNotExist:
-            messages.error(request, 'Appointment not found or not approved by admin yet.')
+            messages.error(request, 'Appointment not found or already processed.')
 
         return redirect('doctor_appointments')
 
@@ -2420,11 +2552,10 @@ def request_reschedule(request, appointment_id):
         appointment = zoom_appointment.objects.get(
             pk=appointment_id,
             doctor=request.user,
-            status__in=['pending', 'approved'],
-            admin_status='approved'  # Only allow rescheduling if admin has approved
+            status__in=['pending', 'approved']
         )
     except zoom_appointment.DoesNotExist:
-        messages.error(request, 'Appointment not found or not approved by admin yet.')
+        messages.error(request, 'Appointment not found or already processed.')
         return redirect('doctor_appointments')
 
     return render(request, 'request_reschedule.html', {'appointment': appointment})
@@ -2440,10 +2571,10 @@ def complete_appointment(request, appointment_id):
         appointment = zoom_appointment.objects.get(
             pk=appointment_id,
             doctor=request.user,
-            admin_status='approved'  # Only allow completing if admin has approved
+            status='approved'
         )
     except zoom_appointment.DoesNotExist:
-        messages.error(request, 'Appointment not found or not approved by admin yet.')
+        messages.error(request, 'Appointment not found or not approved yet.')
         return redirect('doctor_appointments')
 
     if request.method == 'POST':
@@ -2465,17 +2596,94 @@ def get_available_times(request):
 
     doctor_id = request.GET.get('doctor_id')
     date = request.GET.get('date')
-    
+
     if not all([doctor_id, date]):
         return JsonResponse({'error': 'Missing parameters'}, status=400)
-    
+
     try:
         doctor = User.objects.get(pk=doctor_id, is_staff=True, is_active=True, doctor__isnull=False)
     except User.DoesNotExist:
         return JsonResponse({'error': 'Doctor not found'}, status=404)
-    
+
     available_times = get_doctor_availability(doctor, date)
     return JsonResponse({'times': available_times})
+
+
+@login_required
+def add_doctor_availability(request):
+    """Add availability slot for doctor."""
+    if not hasattr(request.user, 'doctor'):
+        return JsonResponse({'error': 'Access denied'}, status=403)
+
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        day_of_week = data.get('day_of_week')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+
+        if not all([day_of_week, start_time, end_time]):
+            return JsonResponse({'error': 'Missing parameters'}, status=400)
+
+        try:
+            from .models import DoctorAvailability
+            availability = DoctorAvailability.objects.create(
+                doctor=request.user,
+                day_of_week=day_of_week,
+                start_time=start_time,
+                end_time=end_time
+            )
+            return JsonResponse({'success': True, 'id': availability.id})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+@login_required
+def delete_doctor_availability(request, availability_id):
+    """Delete availability slot for doctor."""
+    if not hasattr(request.user, 'doctor'):
+        return JsonResponse({'error': 'Access denied'}, status=403)
+
+    try:
+        from .models import DoctorAvailability
+        availability = DoctorAvailability.objects.get(
+            pk=availability_id,
+            doctor=request.user
+        )
+        availability.delete()
+        return JsonResponse({'success': True})
+    except DoctorAvailability.DoesNotExist:
+        return JsonResponse({'error': 'Not found'}, status=404)
+
+
+@login_required
+def get_doctor_availability_schedule(request):
+    """Get doctor's weekly availability schedule."""
+    if not hasattr(request.user, 'doctor'):
+        return JsonResponse({'error': 'Access denied'}, status=403)
+
+    try:
+        from .models import DoctorAvailability
+        availabilities = DoctorAvailability.objects.filter(
+            doctor=request.user,
+            is_active=True
+        ).order_by('day_of_week', 'start_time')
+
+        schedule = {}
+        for avail in availabilities:
+            if avail.day_of_week not in schedule:
+                schedule[avail.day_of_week] = []
+            schedule[avail.day_of_week].append({
+                'id': avail.id,
+                'start_time': avail.start_time.strftime('%H:%M'),
+                'end_time': avail.end_time.strftime('%H:%M')
+            })
+
+        return JsonResponse({'schedule': schedule})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 
 # Admin appointment management
@@ -2760,8 +2968,8 @@ def get_appointment_notifications_api(request):
                 'type': 'success',
                 'appointment_id': appt.id,
             })
-        # Notification for pending approval
-        elif appt.status == 'pending' and appt.admin_status == 'approved':
+        # Notification for pending doctor approval
+        elif appt.status == 'pending':
             notifications.append({
                 'id': f'appt_{appt.id}',
                 'icon': 'fa-hourglass',

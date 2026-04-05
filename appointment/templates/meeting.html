@@ -10,69 +10,152 @@
             <div class="col-12">
                 <div class="card p-4">
                     <h3 class="mb-3"><i class="fas fa-video"></i> Online Meeting</h3>
-                    <p class="text-muted">Use this page to start or join a Zoom meeting with your doctor. If you are a doctor, use the <strong>Start Meeting</strong> section to create or share a meeting link. If you are a patient, use the <strong>Join Meeting</strong> section below.</p>
+                    <p class="text-muted">Use this page to join your scheduled meeting with the doctor. The meeting details below are provided by your doctor.</p>
+                    
+                    {% if messages %}
+                      {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                          <i class="fas fa-check-circle me-2"></i>{{ message }}
+                          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                      {% endfor %}
+                    {% endif %}
+
                     <div class="row mt-4">
                         <div class="col-lg-5">
-                            <div class="mb-3">
-                                <h5>Meeting Details</h5>
-                                <form id="meeting-form">
-                                    <div class="mb-2">
-                                        <label class="form-label">Meeting ID</label>
-                                        <input type="text" name="meeting_id" id="meeting_id" class="form-control" placeholder="Enter Zoom meeting ID or paste full URL">
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Passcode (optional)</label>
-                                        <input type="text" name="meeting_pwd" id="meeting_pwd" class="form-control" placeholder="Passcode if required">
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        {% if request.user.is_staff %}
-                                        <button id="start-meeting" type="button" class="btn btn-primary">
-                                            <i class="fas fa-play"></i> Start Meeting (Host)
-                                        </button>
+                            <!-- Meeting Details from Doctor (Read Only for Patients) -->
+                            <div class="mb-4">
+                                <h5><i class="fas fa-file-medical"></i> Meeting Details</h5>
+                                {% if appointment and appointment.meeting_details %}
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Doctor:</strong> Dr. {{ appointment.doctor.get_full_name }}</p>
+                                        <p class="mb-2"><strong>Date:</strong> {{ appointment.date|date:"M d, Y" }} at {{ appointment.date|time:"H:i" }}</p>
+                                        <p class="mb-2"><strong>Meeting ID:</strong> {{ appointment.zoom_meeting_id|default:"N/A" }}</p>
+                                        {% if appointment.meeting_details %}
+                                        <hr>
+                                        <p class="mb-1"><strong>Instructions from Doctor:</strong></p>
+                                        <p class="text-muted" style="white-space: pre-wrap;">{{ appointment.meeting_details }}</p>
                                         {% endif %}
+                                        <small class="text-muted">Posted by Dr. {{ appointment.doctor.get_full_name }} {% if appointment.meeting_details_updated_at %}on {{ appointment.meeting_details_updated_at|date:"M d, Y H:i" }}{% endif %}</small>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No meeting details posted yet. Your doctor will add instructions here before the meeting.
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Join Meeting Section -->
+                            <div class="mb-3">
+                                <h5><i class="fas fa-sign-in-alt"></i> Join Meeting</h5>
+                                {% if appointment %}
+                                    {% if appointment.zoom_join_url or appointment.zoom_meeting_id %}
+                                    <div class="alert alert-success">
+                                        <strong><i class="fas fa-check-circle"></i> Meeting Details Available!</strong>
+                                        <p class="mb-0">Your doctor has posted the meeting details. Click below to join when it's time.</p>
+                                    </div>
+                                    
+                                    {% if appointment.zoom_join_url %}
+                                    <input type="hidden" id="zoom_url" value="{{ appointment.zoom_join_url }}">
+                                    {% endif %}
+                                    {% if appointment.zoom_meeting_id %}
+                                    <input type="hidden" id="zoom_meeting_id" value="{{ appointment.zoom_meeting_id }}">
+                                    {% endif %}
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button id="join-meeting-btn" type="button" class="btn btn-success btn-lg" disabled title="Meeting starts 10 minutes before scheduled time">
+                                            <i class="fas fa-video"></i> <span id="join-btn-text">Join Meeting (Not Started Yet)</span>
+                                        </button>
+                                        <button id="open-in-client" type="button" class="btn btn-outline-primary">
+                                            <i class="fas fa-external-link-alt"></i> Open in Zoom App
+                                        </button>
+                                        <button id="copy-join-link" type="button" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-copy"></i> Copy Join Link
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="meeting-timer" class="mt-2 text-center">
+                                        <small class="text-muted" id="countdown-text">Checking meeting time...</small>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-hourglass-half me-2"></i>
+                                        <strong>Meeting ID Not Posted Yet</strong>
+                                        <p class="mb-0">Your doctor hasn't posted the meeting ID yet. Please check back later or contact your doctor's office.</p>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Meeting ID (if you have it)</label>
+                                        <input type="text" name="meeting_id" id="meeting_id" class="form-control" placeholder="Enter Zoom meeting ID">
+                                    </div>
+                                    <div class="d-grid">
                                         <button id="join-meeting" type="button" class="btn btn-success">
                                             <i class="fas fa-sign-in-alt"></i> Join Meeting
                                         </button>
-                                        <button id="open-in-client" type="button" class="btn btn-outline-secondary">
-                                            <i class="fas fa-external-link-alt"></i> Open in Zoom App
-                                        </button>
                                     </div>
-                                </form>
+                                    {% endif %}
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No upcoming appointments found. Book an appointment first to access the meeting.
+                                </div>
+                                {% endif %}
                             </div>
 
                             <div class="mt-4">
                                 <h6>Helpful tips</h6>
                                 <ul>
-                                    <li>Copy the full Zoom meeting URL if your doctor shared one (it usually looks like <code>https://zoom.us/j/1234567890?pwd=...</code>).</li>
-                                    <li>If you don't have a meeting link, ask your doctor to share the Meeting ID and Passcode.</li>
-                                    <li>The "Open in Zoom App" button will attempt to open the native Zoom client using the meeting ID. Some browsers may block this and prompt you.</li>
-                                    <li>For the best experience use Chrome or Edge and ensure your microphone and camera are allowed.</li>
+                                    <li>Join 5-10 minutes before your scheduled appointment time.</li>
+                                    <li>Make sure your camera and microphone are working.</li>
+                                    <li>Find a quiet, well-lit space for your consultation.</li>
+                                    <li>Have your medication list ready if needed.</li>
                                 </ul>
                             </div>
                         </div>
 
                         <div class="col-lg-7">
                             <div class="border rounded p-3 h-100 d-flex flex-column">
-                                <h5>Preview / Video (placeholder)</h5>
-                                <div class="flex-grow-1 d-flex align-items-center justify-content-center bg-light rounded">
-                                    <div class="text-center text-muted">
-                                        <i class="fas fa-video fa-3x mb-2"></i>
-                                        <div>Live video will open in Zoom.</div>
-                                        <small class="text-muted">This site launches the Zoom meeting. For embedded SDK integration, an SDK key/secret and server-side signing are required.</small>
+                                <h5><i class="fas fa-tv"></i> Meeting Preview</h5>
+                                <div class="flex-grow-1 d-flex align-items-center justify-content-center bg-light rounded position-relative" style="min-height: 400px;">
+                                    <!-- Zoom Web SDK Container -->
+                                    <div id="zoom-meeting-container" class="w-100 h-100 position-absolute top-0 start-0" style="display: none;"></div>
+                                    
+                                    <!-- Placeholder before joining -->
+                                    <div id="meeting-placeholder" class="text-center text-muted p-4">
+                                        <i class="fas fa-video fa-4x mb-3" style="opacity: 0.3;"></i>
+                                        <h5 class="mb-2">Video Preview</h5>
+                                        <p class="mb-3">The meeting will open in Zoom when you click "Join Meeting"</p>
+                                        <div class="alert alert-warning">
+                                            <small><i class="fas fa-info-circle"></i> <strong>Note:</strong> For full embedded video, Zoom Web SDK requires server-side authentication. Currently, meetings open in Zoom's web client or app.</small>
+                                        </div>
+                                        {% if appointment %}
+                                        <p class="mt-3">
+                                            <strong>Scheduled:</strong> {{ appointment.date|date:"M d, Y" }} at {{ appointment.date|time:"H:i" }}<br>
+                                            <strong>With:</strong> Dr. {{ appointment.doctor.get_full_name }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Loading state -->
+                                    <div id="meeting-loading" class="text-center text-primary p-4" style="display: none;">
+                                        <div class="spinner-border" role="status"></div>
+                                        <p class="mt-3">Loading meeting...</p>
                                     </div>
                                 </div>
+                                
                                 <div class="mt-3">
-                                    <h6>Meeting Controls</h6>
+                                    <h6>Quick Actions</h6>
                                     <div class="d-flex gap-2">
-                                        <button id="mute-toggle" class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-microphone-slash"></i> Mute (Zoom controls)
-                                        </button>
-                                        <button id="video-toggle" class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-video"></i> Video (Zoom controls)
-                                        </button>
                                         <button id="copy-link" class="btn btn-outline-secondary btn-sm">
                                             <i class="fas fa-copy"></i> Copy Meeting URL
                                         </button>
+                                        {% if appointment and appointment.zoom_join_url %}
+                                        <button id="test-camera" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-camera"></i> Test Camera
+                                        </button>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -81,7 +164,7 @@
                     <hr class="my-4">
                     <div>
                         <h6>Security & privacy notes</h6>
-                        <p class="small text-muted">When you join a Zoom meeting from this page we redirect you to Zoom's official web client or native app. We do not capture or record audio/video on this site. If you need recording enabled, ask the meeting host (doctor) to enable it in Zoom settings.</p>
+                        <p class="small text-muted">When you join a Zoom meeting from this page, you will be redirected to Zoom's official web client or native app. We do not capture or record audio/video on this site. All video communication is handled securely by Zoom.</p>
                     </div>
                 </div>
             </div>
@@ -90,6 +173,24 @@
 </div>
 
 <script>
+    // Get appointment data if available
+    const appointmentData = {
+        {% if appointment %}
+        hasAppointment: true,
+        zoomUrl: '{{ appointment.zoom_join_url|default:"" }}',
+        meetingId: '{{ appointment.zoom_meeting_id|default:"" }}',
+        doctorName: '{{ appointment.doctor.get_full_name }}',
+        appointmentDate: '{{ appointment.date|date:"Y-m-d\\TH:i:s" }}',
+        appointmentDateDisplay: '{{ appointment.date|date:"M d, Y H:i" }}'
+        {% else %}
+        hasAppointment: false,
+        zoomUrl: '',
+        meetingId: '',
+        doctorName: '',
+        appointmentDateDisplay: ''
+        {% endif %}
+    };
+
     // Utility to normalize input into a joinable URL
     function buildZoomUrl(meetingIdOrUrl, pass) {
         if (!meetingIdOrUrl) return '';
@@ -111,46 +212,138 @@
         }
     }
 
-    document.getElementById('join-meeting').addEventListener('click', function() {
+    // Check meeting time and update button state
+    function checkMeetingTime() {
+        {% if appointment %}
+        const now = new Date();
+        const apptDate = new Date('{{ appointment.date|date:"Y-m-d\\TH:i:s" }}');
+        const meetingStart = new Date(apptDate.getTime() - 10 * 60 * 1000); // 10 min before
+        const meetingEnd = new Date(apptDate.getTime() + 60 * 60 * 1000); // 1 hour after
+        
+        const joinBtn = document.getElementById('join-meeting-btn');
+        const btnText = document.getElementById('join-btn-text');
+        const countdownText = document.getElementById('countdown-text');
+        
+        if (!joinBtn) return;
+        
+        const timeDiff = apptDate - now;
+        const minutesUntilStart = Math.floor((meetingStart - now) / 60000);
+        const minutesUntilEnd = Math.floor((meetingEnd - now) / 60000);
+        
+        if (now >= meetingStart && now <= meetingEnd) {
+            // Meeting is active - ENABLE button
+            joinBtn.disabled = false;
+            joinBtn.classList.remove('btn-secondary', 'disabled');
+            joinBtn.classList.add('btn-success');
+            joinBtn.title = 'Click to join the meeting now!';
+            btnText.textContent = 'Join Meeting Now';
+            countdownText.innerHTML = `<strong class="text-success"><i class="fas fa-circle me-1"></i> Meeting is LIVE! Ends in ${minutesUntilEnd} minutes</strong>`;
+            
+            // Show notification
+            if (!document.getElementById('meeting-active-alert')) {
+                const alertHtml = `
+                    <div id="meeting-active-alert" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-video me-2"></i>
+                        <strong>Your meeting is now active!</strong> Join your meeting with Dr. {{ appointment.doctor.get_full_name }}.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                document.querySelector('.card.p-4').insertAdjacentHTML('afterbegin', alertHtml);
+            }
+        } else if (now < meetingStart) {
+            // Meeting hasn't started yet - DISABLE button
+            joinBtn.disabled = true;
+            joinBtn.classList.add('btn-secondary', 'disabled');
+            joinBtn.classList.remove('btn-success');
+            joinBtn.title = 'Meeting starts 10 minutes before scheduled time';
+            btnText.textContent = 'Join Meeting';
+            
+            if (minutesUntilStart > 60) {
+                const hours = Math.floor(minutesUntilStart / 60);
+                const mins = minutesUntilStart % 60;
+                countdownText.textContent = `Meeting starts in ${hours}h ${mins}m (opens 10 min before scheduled time)`;
+            } else if (minutesUntilStart > 0) {
+                countdownText.textContent = `Meeting starts in ${minutesUntilStart} minutes (opens 10 min before scheduled time)`;
+            } else {
+                countdownText.textContent = `Meeting starts in less than 10 minutes - refresh page to enable button`;
+            }
+        } else {
+            // Meeting has ended - DISABLE button
+            joinBtn.disabled = true;
+            joinBtn.classList.add('btn-secondary', 'disabled');
+            joinBtn.classList.remove('btn-success');
+            joinBtn.title = 'This meeting has ended';
+            btnText.textContent = 'Meeting Ended';
+            countdownText.innerHTML = `<strong class="text-danger"><i class="fas fa-times-circle me-1"></i> This meeting ended ${Math.abs(minutesUntilEnd)} minutes ago</strong>`;
+        }
+        {% endif %}
+    }
+
+    // Join meeting button with appointment data
+    {% if appointment and appointment.zoom_join_url %}
+    document.getElementById('join-meeting-btn')?.addEventListener('click', function() {
+        const zoomUrl = document.getElementById('zoom_url').value;
+        if (zoomUrl) {
+            // Show loading state
+            document.getElementById('meeting-placeholder').style.display = 'none';
+            document.getElementById('meeting-loading').style.display = 'block';
+            
+            // Open in new window after short delay
+            setTimeout(() => {
+                window.open(zoomUrl, '_blank');
+                document.getElementById('meeting-loading').style.display = 'none';
+                document.getElementById('meeting-placeholder').style.display = 'block';
+            }, 1000);
+        }
+    });
+    {% endif %}
+
+    {% if appointment and appointment.zoom_meeting_id %}
+    // Open in Zoom client using meeting ID
+    document.getElementById('open-in-client')?.addEventListener('click', function() {
+        const meetingId = document.getElementById('zoom_meeting_id')?.value || '{{ appointment.zoom_meeting_id }}';
+        
+        // Attempt to open native Zoom client using zoommtg protocol
+        const clientUrl = 'zoommtg://zoom.us/join?confno=' + encodeURIComponent(meetingId);
+        window.location.href = clientUrl;
+    });
+    
+    // Copy join link
+    document.getElementById('copy-join-link')?.addEventListener('click', function() {
+        const zoomUrl = document.getElementById('zoom_url')?.value;
+        const meetingId = document.getElementById('zoom_meeting_id')?.value;
+        
+        let urlToCopy = zoomUrl;
+        if (!urlToCopy && meetingId) {
+            urlToCopy = 'https://zoom.us/j/' + meetingId;
+        }
+        
+        if (!urlToCopy) { alert('Nothing to copy.'); return; }
+        
+        navigator.clipboard.writeText(urlToCopy).then(function(){
+            alert('Meeting link copied to clipboard!');
+        }, function(){
+            alert('Could not copy link.');
+        });
+    });
+    {% endif %}
+
+    // Manual join meeting (fallback)
+    document.getElementById('join-meeting')?.addEventListener('click', function() {
         const id = document.getElementById('meeting_id').value;
-        const pwd = document.getElementById('meeting_pwd').value;
-        const url = buildZoomUrl(id, pwd);
-        if (!url) { alert('Please enter a Meeting ID or full Zoom URL.'); return; }
+        if (!id) { alert('Please enter a Meeting ID.'); return; }
+        const url = buildZoomUrl(id, '');
         window.open(url, '_blank');
     });
 
-    document.getElementById('open-in-client').addEventListener('click', function() {
-        const id = document.getElementById('meeting_id').value;
-        if (!id) { alert('Enter meeting ID first.'); return; }
-        // Attempt to open native Zoom client using zoommtg protocol
-        const clientUrl = 'zoommtg://zoom.us/join?confno=' + encodeURIComponent(id);
-        window.location.href = clientUrl;
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check meeting time immediately
+        checkMeetingTime();
+        
+        // Update every 30 seconds
+        setInterval(checkMeetingTime, 30000);
     });
-
-    document.getElementById('copy-link').addEventListener('click', function() {
-        const id = document.getElementById('meeting_id').value;
-        const pwd = document.getElementById('meeting_pwd').value;
-        const url = buildZoomUrl(id, pwd);
-        if (!url) { alert('Nothing to copy — enter a meeting ID or URL.'); return; }
-        navigator.clipboard.writeText(url).then(function(){
-            alert('Meeting URL copied to clipboard.');
-        }, function(){
-            alert('Could not copy URL.');
-        });
-    });
-
-    // Start meeting - for host (doctor) we simply open Zoom; in a real app you'd generate a meeting programmatically
-    const startBtn = document.getElementById('start-meeting');
-    if (startBtn) {
-        startBtn.addEventListener('click', function() {
-            const id = document.getElementById('meeting_id').value;
-            const pwd = document.getElementById('meeting_pwd').value;
-            const url = buildZoomUrl(id, pwd);
-            if (!url) { alert('Enter meeting ID or URL to start.'); return; }
-            // For real host-controlled meetings you would redirect the host to the Zoom host URL or use the Zoom SDK
-            window.open(url, '_blank');
-        });
-    }
 </script>
 
 {% endblock content %}

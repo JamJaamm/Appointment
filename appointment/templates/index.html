@@ -9,60 +9,51 @@
 
 {% block content %}
 
-    <style>
+<style>
  /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ========================================
-   CSS Variables - Light Mode (Default)
-   ======================================== */
+
 :root {
-  /* Primary Colors */
   --primary-blue: #0070a0;
   --primary-blue-dark: #00577c;
   --primary-blue-soft: #2c90c9;
   --primary-blue-light: #1b9cca;
   
-  /* Background Colors */
+  
   --bg-primary: #ffffff;
   --bg-secondary: #f7f9fa;
   --bg-tertiary: #cce5f3;
   
-  /* Text Colors */
+  
   --text-primary: #1f1f1f;
   --text-secondary: #33383f;
   --text-muted: #626a72;
   --text-light: #99a4af;
   
-  /* Border Colors */
   --border-color: #dee5eb;
   --border-light: #c2cdd8;
   
-  /* Accent Colors */
+  
   --accent-cream: #cce5f3;
   --accent-yellow: #faea73;
   --accent-pink: #f7cedc;
   --accent-cyan: #cceff6;
   
-  /* Shadow */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12);
   
-  /* Typography */
+
   --font-heading: 'Fraunces', serif;
   --font-body: 'Inter', sans-serif;
   
-  /* Transitions */
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease;
 }
 
-/* ========================================
-   Dark Mode Variables
-   ======================================== */
 [data-theme="dark"] {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
@@ -84,10 +75,8 @@
   --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.4);
 }
 
-/* ========================================
-   Base Styles
-   ======================================== */
-* {
+
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -125,9 +114,7 @@ img {
   height: auto;
 }
 
-/* ========================================
-   Bootstrap Overrides
-   ======================================== */
+
 .btn-primary {
   background-color: var(--primary-blue);
   border-color: var(--primary-blue);
@@ -213,9 +200,9 @@ img {
   font-weight: 500;
   padding: 0.5rem 1rem;
   border-radius: 16px;
-}
+} */
 
-.bg-primary-soft {
+/* .bg-primary-soft {
   background-color: var(--accent-cream) !important;
   color: var(--primary-blue) !important;
 }
@@ -225,9 +212,6 @@ img {
   color: var(--primary-blue-soft) !important;
 }
 
-/* ========================================
-   Custom Utility Classes
-   ======================================== */
 .section-padding {
   padding: 5rem 0;
 }
@@ -264,9 +248,7 @@ img {
   background-color: var(--bg-tertiary) !important;
 }
 
-/* ========================================
-   Navigation
-   ======================================== */
+
 .navbar {
   padding: 1rem 0;
   transition: all var(--transition-fast);
@@ -313,7 +295,6 @@ img {
   color: var(--primary-blue-soft) !important;
 }
 
-/* Theme Toggle Button */
 .theme-toggle {
   width: 40px;
   height: 40px;
@@ -336,9 +317,7 @@ img {
   background-color: var(--bg-tertiary);
 }
 
-/* ========================================
-   Hero Section
-   ======================================== */
+
 .hero-section {
   min-height: 100vh;
   padding-top: 100px;
@@ -425,16 +404,14 @@ img {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-}
+} */
 
-[data-theme="dark"] .hero-floating-card {
+/* [data-theme="dark"] .hero-floating-card {
   background-color: var(--bg-secondary);
-}
+} */
 
-/* ========================================
-   About Section
-   ======================================== */
-.about-image-wrapper {
+
+/* .about-image-wrapper {
   position: relative;
 }
 
@@ -482,12 +459,10 @@ img {
   justify-content: center;
   color: white;
   flex-shrink: 0;
-}
+} */
 
-/* ========================================
-   Doctor Cards
-   ======================================== */
-.doctor-card {
+
+/* .doctor-card {
   text-align: center;
   padding: 1.5rem;
 }
@@ -537,12 +512,9 @@ img {
 
 .star-icon {
   color: #faea73;
-}
+} */
 
-/* ========================================
-   Booking Form
-   ======================================== */
-.booking-form-wrapper {
+/* .booking-form-wrapper {
   background-color: var(--bg-primary);
   padding: 2.5rem;
   border-radius: 16px;
@@ -584,9 +556,7 @@ img {
   color: var(--primary-blue-soft);
 }
 
-/* ========================================
-   Health Tips Carousel
-   ======================================== */
+
 .tip-card .card-img-top {
   height: 200px;
   object-fit: cover;
@@ -596,9 +566,7 @@ img {
   padding: 1.25rem;
 }
 
-/* ========================================
-   FAQ & Chatbot
-   ======================================== */
+
 .accordion-item {
   background-color: transparent;
   border: none;
@@ -629,9 +597,9 @@ img {
 
 .accordion-button::after {
   filter: invert(0);
-}
+} */
 
-[data-theme="dark"] .accordion-button::after {
+/* [data-theme="dark"] .accordion-button::after {
   filter: invert(1);
 }
 
@@ -640,7 +608,6 @@ img {
   color: var(--text-muted);
 }
 
-/* Chatbot */
 .chatbot-container {
   background-color: var(--bg-primary);
   border-radius: 16px;
@@ -761,11 +728,9 @@ img {
   display: flex;
   gap: 0.5rem;
 }
+ */
 
-/* ========================================
-   Features
-   ======================================== */
-.feature-card {
+/* .feature-card {
   padding: 2rem;
   height: 100%;
 }
@@ -803,9 +768,6 @@ img {
   margin-bottom: 0;
 }
 
-/* ========================================
-   How It Works
-   ======================================== */
 .step-wrapper {
   text-align: center;
   position: relative;
@@ -882,9 +844,6 @@ img {
   }
 }
 
-/* ========================================
-   Testimonials
-   ======================================== */
 .testimonial-card {
   padding: 2rem;
   height: 100%;
@@ -930,9 +889,7 @@ img {
   margin-bottom: 0;
 }
 
-/* ========================================
-   CTA Section
-   ======================================== */
+
 .cta-section {
   background: linear-gradient(135deg, #0070a0 0%, #004968 100%);
   padding: 5rem 0;
@@ -972,9 +929,7 @@ img {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* ========================================
-   Footer
-   ======================================== */
+
 .footer {
   background-color: #1f1f1f;
   padding: 4rem 0 2rem;
@@ -998,9 +953,9 @@ img {
 .footer-description {
   color: rgba(255, 255, 255, 0.6);
   margin-bottom: 1.5rem;
-}
+} */
 
-.footer-title {
+/* .footer-title {
   color: white;
   font-size: 1rem;
   font-weight: 600;
@@ -1095,9 +1050,7 @@ img {
   color: white;
 }
 
-/* ========================================
-   Scroll Animations
-   ======================================== */
+
 .reveal {
   opacity: 1;
   transform: translateY(0);
@@ -1134,7 +1087,6 @@ img {
   transform: translateX(0);
 }
 
-/* Stagger delays */
 .stagger-1 { transition-delay: 0.1s; }
 .stagger-2 { transition-delay: 0.2s; }
 .stagger-3 { transition-delay: 0.3s; }
@@ -1142,9 +1094,7 @@ img {
 .stagger-5 { transition-delay: 0.5s; }
 .stagger-6 { transition-delay: 0.6s; }
 
-/* ========================================
-   Custom Scrollbar
-   ======================================== */
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -1162,9 +1112,6 @@ img {
   background: var(--text-muted);
 }
 
-/* ========================================
-   Responsive Adjustments
-   ======================================== */
 @media (max-width: 991px) {
   .hero-section {
     padding-top: 80px;
@@ -1201,11 +1148,9 @@ img {
   .footer-legal {
     margin-top: 1rem;
   }
-}
+} */
 
-/* ========================================
-   Reduced Motion
-   ======================================== */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1228,11 +1173,8 @@ img {
 }
 
 
-    </style>
+</style>
 
-  <!-- ========================================
-     Hero Section
-     ======================================== -->
   <section id="home" class="hero-section" >
     <div class="container">
       <div class="row align-items-center gy-5">
@@ -1283,7 +1225,7 @@ img {
         
         <div class="col-lg-6"  >
           <div class="hero-image-wrapper reveal-right">
-            <img src="{% static 'images/gen.jpeg' %}" alt="Friendly healthcare professional" class="hero-image img-fluid">
+            <img src="{% static 'images/img1.jpg' %}" alt="Friendly healthcare professional" class="hero-image img-fluid">
             <div class="hero-floating-card d-none d-lg-flex">
               <div class="stat-icon">
                 <i class="bi bi-heart-pulse-fill"></i>
@@ -1299,9 +1241,7 @@ img {
     </div>
   </section>
 
-  <!-- ========================================
-     About Section
-     ======================================== -->
+
   <section id="about" class="section-padding">
     <div class="container">
       <div class="row align-items-center gy-5">
@@ -1351,9 +1291,7 @@ img {
     </div>
   </section>
 
-  <!-- ========================================
-     Doctor Showcase Section
-     ======================================== -->
+ 
   <section id="doctors" class="section-padding bg-secondary-custom">
     <div class="container">
       <div class="text-center max-w-600 mx-auto mb-5 reveal">
@@ -1395,9 +1333,7 @@ img {
     </div>
   </section>
 
-  <!-- ========================================
-     Appointment Booking Section
-     ======================================== -->
+
   <section id="booking" class="section-padding">
     <div class="container">
       <div class="row gy-5">
@@ -1500,9 +1436,7 @@ img {
     </div>
   </section>
 
-  <!-- ========================================
-     Health Tips Section
-     ======================================== -->
+<!-- Health tips -->
   <section class="section-padding bg-secondary-custom">
     <div class="container">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-end mb-5 reveal">
@@ -1810,9 +1744,7 @@ img {
     </div>
   </div>
 
-  <!-- ========================================
-     FAQ & Chatbot Section
-     ======================================== -->
+<!-- chatbox -->
   <section class="section-padding">
     <div class="container">
       <div class="row gy-5">
@@ -1937,9 +1869,7 @@ img {
     </div>
   </section>
 
-  <!-- ========================================
-     Features Section
-     ======================================== -->
+<!-- features -->
   <section id="features" class="section-padding bg-tertiary-custom">
     <div class="container">
       <div class="text-center max-w-600 mx-auto mb-5 reveal">
@@ -2146,9 +2076,7 @@ img {
     </div>
   </section>
 
-  <!-- ========================================
-     CTA Section
-     ======================================== -->
+ 
   <section class="cta-section">
     <div class="container">
       <div class="text-center max-w-700 mx-auto reveal">

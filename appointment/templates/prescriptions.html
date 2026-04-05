@@ -102,16 +102,21 @@
                             <div class="d-flex align-items-center mb-2">
                                 <i class="fas fa-pills fa-lg text-primary me-2"></i>
                                 <h5 class="fw-bold mb-0">{{ prescription.drug_name }}</h5>
-                                <div class="ms-auto">
-                                    {% if prescription.status == 'active' %}
-                                        <span class="badge bg-success px-3 py-2">{{ prescription.get_status_display }}</span>
-                                    {% elif prescription.status == 'completed' %}
-                                        <span class="badge bg-primary px-3 py-2">{{ prescription.get_status_display }}</span>
-                                    {% elif prescription.status == 'expired' %}
-                                        <span class="badge bg-danger px-3 py-2">{{ prescription.get_status_display }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary px-3 py-2">{{ prescription.get_status_display }}</span>
-                                    {% endif %}
+                                <div class="ms-auto d-flex align-items-center gap-2">
+                                    <!-- Toggle Switch -->
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" 
+                                               id="toggle-{{ prescription.id }}" 
+                                               {% if prescription.status == 'active' %}checked{% endif %}
+                                               onchange="toggleStatus({{ prescription.id }}, this.checked)">
+                                        <label class="form-check-label small" for="toggle-{{ prescription.id }}">
+                                            {% if prescription.status == 'active' %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                             <div class="mb-1"><i class="fas fa-user me-1 text-info"></i> <strong>Patient:</strong> {{ prescription.patient.user.get_full_name|default:prescription.patient.user.username }}</div>
@@ -404,6 +409,78 @@
             doc.text('Doctor\'s Signature', 120, 257);
             
             doc.save(`prescription_${p.drug}_${p.date}.pdf`);
+        }
+
+        // Toggle prescription status via AJAX
+        function toggleStatus(prescriptionId, isActive) {
+            const formData = new FormData();
+            formData.append('status', isActive ? 'active' : 'completed');
+            formData.append('_method', 'POST');
+
+            fetch(`/prescriptions/${prescriptionId}/toggle-status/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Update the badge label
+                    const toggle = document.getElementById(`toggle-${prescriptionId}`);
+                    const label = toggle.nextElementSibling;
+                    if (isActive) {
+                        label.innerHTML = '<span class="badge bg-success">Active</span>';
+                    } else {
+                        label.innerHTML = '<span class="badge bg-secondary">Inactive</span>';
+                    }
+                    
+                    // Show success message
+                    const message = isActive ? 'Prescription marked as active.' : 'Prescription marked as completed.';
+                    showNotification(message, 'success');
+                } else {
+                    // Revert the toggle on error
+                    toggle.checked = !isActive;
+                    showNotification('Failed to update status. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toggle.checked = !isActive;
+                showNotification('An error occurred. Please try again.', 'error');
+            });
+        }
+
+        // Get CSRF token from cookie
+        function getCsrfToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 10) === 'csrftoken=') {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
         }
     </script>
 {% endblock content %}

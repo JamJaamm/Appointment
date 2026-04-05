@@ -20,6 +20,9 @@ class UserInfo(models.Model):
     yearsOfExperience = models.PositiveIntegerField(null=True, blank=True)
     bloodgroup = models.CharField(max_length=10, blank=True, null=True)
     speciality = models.CharField(max_length=100, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True, help_text="Doctor's biography/biography")
+    education = models.TextField(blank=True, null=True, help_text="Doctor's education background (one per line)")
+    certifications = models.TextField(blank=True, null=True, help_text="Doctor's certifications (one per line)")
 
 
     class Meta:
@@ -27,12 +30,36 @@ class UserInfo(models.Model):
         db_table = 'userinfo'
 
 class Doctor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)     
-    speciality = models.CharField(max_length=100)   
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    speciality = models.CharField(max_length=100)
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.speciality}"
-    
+
+
+class DoctorAvailability(models.Model):
+    """Doctor's weekly availability schedule."""
+    doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='availabilities')
+    day_of_week = models.CharField(max_length=10, choices=[
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+        ('Sunday', 'Sunday'),
+    ])
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['day_of_week', 'start_time']
+        unique_together = ['doctor', 'day_of_week', 'start_time', 'end_time']
+
+    def __str__(self):
+        return f"{self.doctor.get_full_name()} - {self.day_of_week} ({self.start_time}-{self.end_time})"
 
 
 @receiver(post_save, sender=User)
@@ -118,6 +145,8 @@ class zoom_appointment(models.Model):
     zoom_meeting_id = models.CharField(max_length=100, blank=True, null=True)
     zoom_join_url = models.URLField(blank=True, null=True)
     zoom_start_url = models.URLField(blank=True, null=True)
+    meeting_details = models.TextField(blank=True, null=True, help_text="Meeting instructions/details posted by doctor")
+    meeting_details_updated_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -82,6 +82,59 @@
     {% endfor %}
   {% endif %}
 
+  <!-- Active Meeting Alert -->
+  <div id="activeMeetingAlert" class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <i class="fas fa-video me-2"></i>
+        <strong>Meeting is now active!</strong>
+        <span id="activeMeetingDoctor" class="ms-2"></span>
+      </div>
+      <div>
+        <a href="#" id="joinMeetingBtn" class="btn btn-success btn-sm me-2" target="_blank">
+          <i class="fas fa-external-link-alt me-1"></i>Join in Browser
+        </a>
+        <button class="btn btn-outline-success btn-sm" onclick="showMeetingPreview()">
+          <i class="fas fa-eye me-1"></i>Preview Here
+        </button>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Meeting Preview Modal -->
+  <div class="modal fade" id="meetingPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fas fa-video me-2"></i>Meeting Preview - <span id="previewDoctorName"></span></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-0" style="min-height: 500px; background: #000;">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100 p-5" style="min-height: 500px;">
+            <div id="meetingIframeContainer" style="width: 100%; height: 100%; min-height: 500px;">
+              <iframe id="meetingIframe" src="" style="width: 100%; height: 100%; border: none;" allow="camera; microphone; display-capture"></iframe>
+            </div>
+            <div id="meetingPlaceholder" class="text-center text-white">
+              <i class="fas fa-video fa-4x mb-3" style="opacity: 0.5;"></i>
+              <h4>Meeting Preview</h4>
+              <p class="mb-3">Click below to join the meeting in a new window</p>
+              <a href="#" id="previewJoinBtn" class="btn btn-success btn-lg" target="_blank">
+                <i class="fas fa-external-link-alt me-2"></i>Join Meeting
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <a href="#" id="fullscreenJoinBtn" class="btn btn-success" target="_blank">
+            <i class="fas fa-expand me-1"></i>Join in Full Screen
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- View Toggle -->
   <div class="view-toggle d-flex justify-content-end gap-2 mb-3">
     <button class="btn btn-outline-primary active" id="listViewBtn" onclick="showListView()">
@@ -102,12 +155,12 @@
     <!-- Tabs -->
     <ul class="nav nav-pills mb-4" id="appointmentTabs" role="tablist">
       <li class="nav-item" role="presentation">
-        <a class="nav-link {% if app_type != 'past' %}active{% endif %}" href="?type=upcoming&status={{ status_filter }}&admin_status={{ admin_status_filter }}">
+        <a class="nav-link {% if app_type != 'past' %}active{% endif %}" href="?type=upcoming&status={{ status_filter }}">
           <i class="fas fa-calendar-alt me-2"></i>Upcoming
         </a>
       </li>
       <li class="nav-item" role="presentation">
-        <a class="nav-link {% if app_type == 'past' %}active{% endif %}" href="?type=past&status={{ status_filter }}&admin_status={{ admin_status_filter }}">
+        <a class="nav-link {% if app_type == 'past' %}active{% endif %}" href="?type=past&status={{ status_filter }}">
           <i class="fas fa-history me-2"></i>Past Appointments
         </a>
       </li>
@@ -133,14 +186,6 @@
             <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
             <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
             <option value="reschedule_requested" {% if status_filter == 'reschedule_requested' %}selected{% endif %}>Reschedule Requested</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <select class="form-select" name="admin_status" onchange="this.form.submit()">
-            <option value="">All Approval Statuses</option>
-            <option value="pending" {% if admin_status_filter == 'pending' %}selected{% endif %}>Admin Pending</option>
-            <option value="approved" {% if admin_status_filter == 'approved' %}selected{% endif %}>Admin Approved</option>
-            <option value="rejected" {% if admin_status_filter == 'rejected' %}selected{% endif %}>Admin Rejected</option>
           </select>
         </div>
       </form>
@@ -173,18 +218,6 @@
                     </div>
                     <div class="text-end">
                       <span class="status-badge status-{{ appointment.status }}">{{ appointment.get_status_display }}</span>
-                      {% if appointment.admin_status %}
-                        <br>
-                        <small>
-                          {% if appointment.admin_status == 'pending' %}
-                            <span class="badge bg-warning text-dark">{{ appointment.get_admin_status_display }}</span>
-                          {% elif appointment.admin_status == 'approved' %}
-                            <span class="badge bg-success">{{ appointment.get_admin_status_display }}</span>
-                          {% elif appointment.admin_status == 'rejected' %}
-                            <span class="badge bg-danger">{{ appointment.get_admin_status_display }}</span>
-                          {% endif %}
-                        </small>
-                      {% endif %}
                     </div>
                   </div>
 
@@ -205,30 +238,34 @@
 
                   <!-- Actions -->
                   <div class="mt-3 d-flex flex-wrap gap-2">
-                    {% if appointment.admin_status == 'pending' %}
-                      <span class="badge bg-warning text-dark"><i class="fas fa-hourglass me-1"></i>Awaiting admin approval</span>
-                    {% elif appointment.admin_status == 'rejected' %}
-                      <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Admin rejected</span>
-                    {% elif appointment.admin_status == 'approved' %}
-                      {% if appointment.status == 'pending' or appointment.status == 'approved' %}
-                        {% if appointment.status == 'pending' %}
-                          <span class="badge bg-warning text-dark"><i class="fas fa-hourglass me-1"></i>Awaiting doctor approval</span>
-                        {% endif %}
-                        <a href="{% url 'reschedule_appointment' appointment.id %}" class="btn btn-sm btn-outline-primary">
-                          <i class="fas fa-sync me-1"></i>Reschedule
+                    {% if appointment.status == 'pending' %}
+                      <span class="badge bg-warning text-dark"><i class="fas fa-hourglass me-1"></i>Awaiting doctor approval</span>
+                    {% elif appointment.status == 'cancelled' %}
+                      <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Cancelled</span>
+                    {% elif appointment.status == 'approved' %}
+                      <span class="badge bg-success"><i class="fas fa-check me-1"></i>Approved by doctor</span>
+                      {% if appointment.zoom_join_url %}
+                        <a href="{{ appointment.zoom_join_url }}" target="_blank" class="btn btn-sm btn-success join-meeting-btn" data-appointment-date="{{ appointment.date.isoformat }}">
+                          <i class="fas fa-video me-1"></i>Join Meeting
                         </a>
-                        <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-sm btn-outline-danger">
-                          <i class="fas fa-times me-1"></i>Cancel
-                        </a>
-                      {% elif appointment.status == 'reschedule_requested' %}
-                        <span class="badge bg-info"><i class="fas fa-bell me-1"></i>Doctor requested reschedule</span>
-                        <a href="{% url 'reschedule_appointment' appointment.id %}" class="btn btn-sm btn-primary">
-                          <i class="fas fa-sync me-1"></i>Reschedule Now
-                        </a>
-                      {% elif appointment.status == 'completed' %}
-                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>
-                      {% elif appointment.status == 'cancelled' %}
-                        <span class="badge bg-danger"><i class="fas fa-ban me-1"></i>Cancelled</span>
+                      {% endif %}
+                      <a href="{% url 'reschedule_appointment' appointment.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-sync me-1"></i>Reschedule
+                      </a>
+                      <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-times me-1"></i>Cancel
+                      </a>
+                    {% elif appointment.status == 'reschedule_requested' %}
+                      <span class="badge bg-info"><i class="fas fa-bell me-1"></i>Doctor requested reschedule</span>
+                      <a href="{% url 'reschedule_appointment' appointment.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-sync me-1"></i>Reschedule Now
+                      </a>
+                    {% elif appointment.status == 'completed' %}
+                      <span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>
+                      {% if appointment.zoom_join_url %}
+                        <button class="btn btn-sm btn-secondary" disabled title="This appointment has passed">
+                          <i class="fas fa-video me-1"></i>Meeting Ended
+                        </button>
                       {% endif %}
                     {% endif %}
                   </div>
@@ -387,6 +424,109 @@
   document.addEventListener('DOMContentLoaded', function() {
     // Initialize calendar but don't render until shown
     initCalendar();
+    
+    // Check for active meetings
+    checkActiveMeetings();
+    setInterval(checkActiveMeetings, 60000); // Check every minute
+    
+    // Update join meeting buttons state
+    updateJoinMeetingButtons();
+    setInterval(updateJoinMeetingButtons, 60000);
   });
+
+  // Update Join Meeting buttons based on appointment time
+  function updateJoinMeetingButtons() {
+    const now = new Date();
+    const joinButtons = document.querySelectorAll('.join-meeting-btn');
+    
+    joinButtons.forEach(button => {
+      const apptDateStr = button.getAttribute('data-appointment-date');
+      if (!apptDateStr) return;
+      
+      const apptDate = new Date(apptDateStr);
+      const meetingStart = new Date(apptDate.getTime() - 10 * 60 * 1000); // 10 minutes before
+      const meetingEnd = new Date(apptDate.getTime() + 60 * 60 * 1000); // 1 hour after
+      
+      if (now >= meetingStart && now <= meetingEnd) {
+        // Meeting time - enable button
+        button.classList.remove('disabled', 'btn-secondary');
+        button.classList.add('btn-success');
+        button.style.pointerEvents = 'auto';
+        button.style.opacity = '1';
+        button.title = 'Click to join the meeting';
+      } else if (now < meetingStart) {
+        // Not yet time - disable button
+        button.classList.add('disabled', 'btn-secondary');
+        button.classList.remove('btn-success');
+        button.style.pointerEvents = 'none';
+        button.style.opacity = '0.6';
+        const minutesUntilStart = Math.floor((meetingStart - now) / 60000);
+        button.title = `Meeting starts in ${minutesUntilStart} minutes (opens 10 min before)`;
+      } else {
+        // Meeting has ended
+        button.classList.add('disabled', 'btn-secondary');
+        button.classList.remove('btn-success');
+        button.style.pointerEvents = 'none';
+        button.style.opacity = '0.6';
+        button.title = 'This meeting has ended';
+      }
+    });
+  }
+
+  // Check for meetings that are currently active (10 min before to 1 hour after)
+  function checkActiveMeetings() {
+    const now = new Date();
+    let activeMeeting = null;
+
+    {% for appt in appointments %}
+      {% if appt.zoom_join_url %}
+        const apptDate{{ appt.id }} = new Date('{{ appt.date|date:"Y-m-d\\TH:i:s" }}');
+        const meetingStart{{ appt.id }} = new Date(apptDate{{ appt.id }}.getTime() - 10 * 60 * 1000); // 10 min before
+        const meetingEnd{{ appt.id }} = new Date(apptDate{{ appt.id }}.getTime() + 60 * 60 * 1000); // 1 hour after
+
+        if (now >= meetingStart{{ appt.id }} && now <= meetingEnd{{ appt.id }}) {
+          activeMeeting = {
+            id: '{{ appt.id }}',
+            doctor: 'Dr. {{ appt.doctor.get_full_name }}',
+            joinUrl: '{{ appt.zoom_join_url }}',
+            startTime: apptDate{{ appt.id }}
+          };
+        }
+      {% endif %}
+    {% endfor %}
+
+    const alertBox = document.getElementById('activeMeetingAlert');
+    if (activeMeeting) {
+      document.getElementById('activeMeetingDoctor').textContent = `with ${activeMeeting.doctor}`;
+      document.getElementById('joinMeetingBtn').href = activeMeeting.joinUrl;
+      document.getElementById('previewJoinBtn').href = activeMeeting.joinUrl;
+      document.getElementById('fullscreenJoinBtn').href = activeMeeting.joinUrl;
+      document.getElementById('previewDoctorName').textContent = activeMeeting.doctor;
+      alertBox.style.display = 'block';
+    } else {
+      alertBox.style.display = 'none';
+    }
+  }
+
+  // Show meeting preview modal
+  function showMeetingPreview() {
+    const modal = new bootstrap.Modal(document.getElementById('meetingPreviewModal'));
+    
+    // Try to embed Zoom (note: Zoom may block iframe embedding)
+    const activeJoinBtn = document.getElementById('joinMeetingBtn');
+    const joinUrl = activeJoinBtn.href;
+    
+    // Set iframe src (may be blocked by Zoom's X-Frame-Options)
+    const iframe = document.getElementById('meetingIframe');
+    const placeholder = document.getElementById('meetingPlaceholder');
+    
+    // Zoom typically blocks iframe embedding, so show placeholder with join button
+    iframe.style.display = 'none';
+    placeholder.style.display = 'block';
+    document.getElementById('previewJoinBtn').href = joinUrl;
+    document.getElementById('fullscreenJoinBtn').href = joinUrl;
+    
+    modal.show();
+  }
 </script>
 {% endblock %}

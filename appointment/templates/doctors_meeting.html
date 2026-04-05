@@ -1,4 +1,4 @@
-{% extends 'user_header_footer.html' %}
+{% extends 'doctor_header_footer.html' %}
 {% load static %}
 
 {% block title %}Doctor Meeting - MediCare{% endblock title %}
@@ -10,11 +10,96 @@
       <div class="col-12">
         <div class="card p-4">
           <h3 class="mb-3"><i class="fas fa-user-md"></i> Doctor Meeting Dashboard</h3>
-          <p class="text-muted">This page is for doctors to start and manage online consultations. You can paste an existing Zoom meeting link or Meeting ID to host, or generate/share a meeting URL with patients.</p>
+          <p class="text-muted">Post meeting details and instructions for your upcoming appointments. Patients will see these details on their meeting page.</p>
+
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
 
           <div class="row mt-4">
             <div class="col-lg-6">
-              <h5>Start or Manage Meeting</h5>
+              <h5><i class="fas fa-edit"></i> Post Meeting Details for Patient</h5>
+              
+              <!-- Select Appointment -->
+              <form method="post" action="{% url 'doctors_meeting' %}" id="post-meeting-form">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label class="form-label">Select Appointment</label>
+                  <select name="appointment_id" id="appointment_id" class="form-select" required onchange="loadAppointmentData()">
+                    <option value="">-- Select an appointment --</option>
+                    {% for appt in all_appointments %}
+                    <option value="{{ appt.id }}" 
+                            data-patient="{{ appt.patient.user.get_full_name }}" 
+                            data-date="{{ appt.date|date:'Y-m-d H:i' }}" 
+                            data-zoom-url="{{ appt.zoom_join_url|default:'' }}"
+                            data-meeting-id="{{ appt.zoom_meeting_id|default:'' }}"
+                            data-meeting-pwd="{{ appt.zoom_join_url|default:'' }}"
+                            data-meeting-details="{{ appt.meeting_details|default:'' }}">
+                      {{ appt.patient.user.get_full_name }} - {{ appt.date|date:"M d, Y H:i" }} ({{ appt.status }})
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <small class="text-muted">Select any appointment to post meeting details</small>
+                </div>
+
+                <div class="mb-2">
+                  <label class="form-label">Meeting ID or URL <span class="text-danger">*</span></label>
+                  <input type="text" name="zoom_meeting_id" id="zoom_meeting_id" class="form-control" placeholder="e.g., 1234567890 or https://zoom.us/j/1234567890" required>
+                  <small class="text-muted">Patient will use this to join the meeting</small>
+                </div>
+
+                <div class="mb-2">
+                  <label class="form-label">Join URL (full link with passcode)</label>
+                  <input type="url" name="zoom_join_url" id="zoom_join_url" class="form-control" placeholder="https://zoom.us/j/...?pwd=...">
+                  <small class="text-muted">Optional: Full Zoom link with password embedded</small>
+                </div>
+
+                <div class="mb-2">
+                  <label class="form-label">Meeting Instructions for Patient</label>
+                  <textarea name="meeting_details" id="meeting_details" class="form-control" rows="4" placeholder="E.g.:
+- Please join 5-10 minutes early
+- Have your medication list ready
+- Find a quiet, well-lit space"></textarea>
+                </div>
+
+                <div class="d-grid">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Meeting Details for Patient
+                  </button>
+                </div>
+              </form>
+
+              <div class="mt-4">
+                <h6><i class="fas fa-history"></i> Recently Updated</h6>
+                {% if recent_appointments %}
+                <div class="list-group">
+                  {% for appt in recent_appointments %}
+                  <div class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">{{ appt.patient.user.get_full_name }}</h6>
+                      <small class="text-muted">{{ appt.meeting_details_updated_at|date:"M d, H:i" }}</small>
+                    </div>
+                    <p class="mb-1 text-muted small">
+                      {% if appt.zoom_meeting_id %}<i class="fas fa-hashtag"></i> {{ appt.zoom_meeting_id }}{% endif %}
+                      {% if appt.meeting_details %} · {{ appt.meeting_details|truncatechars:50 }}{% endif %}
+                    </p>
+                    <small class="text-primary">Meeting: {{ appt.date|date:"M d, Y H:i" }}</small>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small">No meeting details posted yet.</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <h5><i class="fas fa-video"></i> Quick Start Meeting</h5>
               <form id="doctor-meeting-form">
                 <div class="mb-2">
                   <label class="form-label">Meeting ID or URL</label>
@@ -24,36 +109,26 @@
                   <label class="form-label">Passcode (optional)</label>
                   <input type="text" id="meeting_pwd_doc" class="form-control" placeholder="Passcode if required">
                 </div>
-                <div class="mb-2">
-                  <label class="form-label">Notes for Patient (optional)</label>
-                  <textarea id="meeting_notes" class="form-control" rows="3" placeholder="E.g. Please join 5 minutes early."></textarea>
-                </div>
                 <div class="d-flex gap-2">
-                  <button id="host-meeting" type="button" class="btn btn-primary"><i class="fas fa-play"></i> Start / Host Meeting</button>
-                  <button id="copy-meeting-link-doc" type="button" class="btn btn-outline-secondary"><i class="fas fa-copy"></i> Copy Share Link</button>
-                  <button id="send-link" type="button" class="btn btn-success"><i class="fas fa-paper-plane"></i> Send to Patient</button>
+                  <button id="host-meeting" type="button" class="btn btn-primary"><i class="fas fa-play"></i> Start Meeting</button>
+                  <button id="copy-meeting-link-doc" type="button" class="btn btn-outline-secondary"><i class="fas fa-copy"></i> Copy Link</button>
                 </div>
               </form>
 
               <div class="mt-4">
-                <h6>Recent Meetings</h6>
-                <p class="small text-muted">No recent meetings recorded. In a production app you'd store generated meeting links and upcoming appointments here.</p>
+                <h6>Host Tips</h6>
+                <ul>
+                  <li>Start the meeting 5 minutes early to test your setup.</li>
+                  <li>Enable <strong>Waiting Room</strong> to control when patients join.</li>
+                  <li>Use the meeting details section to give patients clear instructions.</li>
+                  <li>For recording, inform the patient and get consent first.</li>
+                </ul>
               </div>
-            </div>
-
-            <div class="col-lg-6">
-              <h5>Host Controls & Guidance</h5>
-              <ul>
-                <li>Starting a meeting will open Zoom's host page or native client. For scheduled meetings create them in your Zoom account and paste the link here.</li>
-                <li>Enable <strong>Waiting Room</strong> or a passcode to protect meetings with sensitive patient data.</li>
-                <li>To record the session, enable recording in Zoom and inform the patient in advance.</li>
-                <li>To embed meetings on-site consider Zoom Web SDK or Video SDK; they require server-side signing and API keys.</li>
-              </ul>
 
               <div class="border rounded p-3 mt-3 bg-light">
-                <h6>Quick Host Actions</h6>
+                <h6>Quick Actions</h6>
                 <div class="d-flex gap-2">
-                  <button id="open-zoom-host" class="btn btn-outline-primary btn-sm">Open Host in Browser</button>
+                  <button id="open-zoom-host" class="btn btn-outline-primary btn-sm">Open in Browser</button>
                   <button id="open-zoom-client-host" class="btn btn-outline-secondary btn-sm">Open in Zoom App</button>
                 </div>
               </div>
@@ -72,6 +147,35 @@
 </div>
 
 <script>
+  // Auto-load appointment data when selected
+  function loadAppointmentData() {
+    const select = document.getElementById('appointment_id');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (!selectedOption.value) {
+      // Clear form if no appointment selected
+      document.getElementById('zoom_meeting_id').value = '';
+      document.getElementById('zoom_join_url').value = '';
+      document.getElementById('meeting_details').value = '';
+      return;
+    }
+    
+    // Load existing data from the appointment
+    const meetingId = selectedOption.getAttribute('data-meeting-id');
+    const zoomUrl = selectedOption.getAttribute('data-zoom-url');
+    const meetingDetails = selectedOption.getAttribute('data-meeting-details');
+    
+    if (meetingId) {
+      document.getElementById('zoom_meeting_id').value = meetingId;
+    }
+    if (zoomUrl) {
+      document.getElementById('zoom_join_url').value = zoomUrl;
+    }
+    if (meetingDetails) {
+      document.getElementById('meeting_details').value = meetingDetails;
+    }
+  }
+
   function buildZoomUrl(meetingIdOrUrl, pass) {
     if (!meetingIdOrUrl) return '';
     meetingIdOrUrl = meetingIdOrUrl.trim();
@@ -106,16 +210,6 @@
     navigator.clipboard.writeText(url).then(()=> alert('Meeting URL copied.'));
   });
 
-  document.getElementById('send-link').addEventListener('click', function(){
-    const id = document.getElementById('meeting_id_doc').value;
-    const pwd = document.getElementById('meeting_pwd_doc').value;
-    const notes = document.getElementById('meeting_notes').value;
-    const url = buildZoomUrl(id, pwd);
-    if (!url) { alert('Enter meeting info to send.'); return; }
-    // Placeholder: in a real app you would POST to server to send email or message to the patient
-    alert('Pretend sending:\n' + url + '\nNotes: ' + notes);
-  });
-
   document.getElementById('open-zoom-host').addEventListener('click', function(){
     const id = document.getElementById('meeting_id_doc').value;
     const pwd = document.getElementById('meeting_pwd_doc').value;
@@ -128,6 +222,15 @@
     const id = document.getElementById('meeting_id_doc').value;
     if (!id) { alert('Enter meeting ID first.'); return; }
     window.location.href = 'zoommtg://zoom.us/join?confno=' + encodeURIComponent(id);
+  });
+
+  // Auto-fill meeting ID when appointment is selected
+  document.getElementById('appointment_id').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const zoomUrl = selectedOption.getAttribute('data-zoom-url');
+    if (zoomUrl) {
+      document.getElementById('meeting_id_doc').value = zoomUrl;
+    }
   });
 </script>
 

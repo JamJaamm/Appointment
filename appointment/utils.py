@@ -43,7 +43,52 @@ def send_verification_email(request, user, expiry_minutes: int = 30):
         email.send()
         
         logger.info(f"Verification email sent to {user.email}")
-        
+
     except Exception as e:
         logger.error(f"Failed to send verification email: {e}")
+        raise
+
+
+def send_welcome_email(user, is_doctor: bool = False):
+    """
+    Send a welcome email to a newly registered user.
+    
+    Args:
+        user: The User instance
+        is_doctor: Boolean indicating if the user is a doctor
+    """
+    try:
+        # Determine the appropriate template and dashboard URL
+        if is_doctor:
+            template_name = "emails/welcome_doctor.html"
+            dashboard_url = "/doctors-dashboard/"
+        else:
+            template_name = "emails/welcome_patient.html"
+            dashboard_url = "/user-dashboard/"
+
+        subject = "Welcome to MediCare!"
+        context = {
+            "user": user,
+            "dashboard_url": dashboard_url,
+            "now": timezone.now(),
+        }
+
+        # Render HTML from template
+        html_content = render_to_string(template_name, context)
+        text_content = strip_tags(html_content)  # Fallback text version
+
+        # Build the email
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email="noreply@doctors-appointment.com",
+            to=[user.email],
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
+        logger.info(f"Welcome email sent to {user.email} (is_doctor={is_doctor})")
+
+    except Exception as e:
+        logger.error(f"Failed to send welcome email: {e}")
         raise

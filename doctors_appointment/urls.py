@@ -42,6 +42,7 @@ urlpatterns = [
     path('prescriptions', views.prescriptions_page, name='prescriptions'),
     path('prescriptions/create/', views.create_prescription, name='create_prescription'),
     path('prescriptions/<int:prescription_id>/update-status/', views.update_prescription_status, name='update_prescription_status'),
+    path('prescriptions/<int:prescription_id>/toggle-status/', views.toggle_prescription_status, name='toggle_prescription_status'),
     path('prescriptions/<int:prescription_id>/delete/', views.delete_prescription, name='delete_prescription'),
     path('appoinment_history', views.appoinment_historypage, name='appoinment_history'),
     path('doctors_message', views.doctors_messagepage,name='doctors_message'),
@@ -89,6 +90,9 @@ urlpatterns = [
 
     # AJAX
     path('get_available_times/', views.get_available_times, name='get_available_times'),
+    path('api/add-availability/', views.add_doctor_availability, name='add_doctor_availability'),
+    path('api/delete-availability/<int:availability_id>/', views.delete_doctor_availability, name='delete_doctor_availability'),
+    path('api/get-availability-schedule/', views.get_doctor_availability_schedule, name='get_doctor_availability_schedule'),
     
     # Reminders
     path('send_reminder/', views.send_reminder, name='send_reminder'),

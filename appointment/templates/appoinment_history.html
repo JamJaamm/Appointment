@@ -79,13 +79,18 @@
                         <i class="fas fa-stethoscope me-2 text-primary"></i>{{ appt.reason }}
                       </div>
                     {% endif %}
-                    {% if appt.admin_status == 'pending' %}
+                    {% if appt.status == 'pending' %}
                       <div class="mt-1">
-                        <span class="badge bg-warning text-dark"><i class="fas fa-hourglass me-1"></i>Awaiting admin approval</span>
+                        <span class="badge bg-warning text-dark"><i class="fas fa-hourglass me-1"></i>Awaiting doctor approval</span>
                       </div>
                     {% endif %}
                   </div>
                   <div class="text-end">
+                    {% if appt.zoom_join_url %}
+                      <a href="{{ appt.zoom_join_url }}" target="_blank" class="btn btn-sm btn-success mb-1 join-meeting-btn" data-appointment-date="{{ appt.date.isoformat }}">
+                        <i class="fas fa-video me-1"></i>Join Meeting
+                      </a>
+                    {% endif %}
                     {% if appt.status == 'pending' or appt.status == 'approved' %}
                       <a href="{% url 'reschedule_appointment' appt.id %}" class="btn btn-sm btn-outline-primary mb-1">
                         <i class="fas fa-sync me-1"></i>Reschedule
@@ -124,7 +129,7 @@
                       <span class="status-badge-custom status-{{ appt.status }}">{{ appt.get_status_display }}</span>
                     </div>
                     <div class="slot text-muted mb-1">
-                      <i class="fas fa-calendar me-2 text-primary"></i>{{ appt.date|date:"M d, Y" }} · 
+                      <i class="fas fa-calendar me-2 text-primary"></i>{{ appt.date|date:"M d, Y" }} ·
                       <i class="fas fa-clock me-2 text-primary"></i>{{ appt.date|time:"H:i" }}
                     </div>
                     {% if appt.reason %}
@@ -134,6 +139,11 @@
                     {% endif %}
                   </div>
                   <div class="text-end">
+                    {% if appt.zoom_join_url %}
+                      <button class="btn btn-sm btn-outline-primary mb-1" disabled title="This appointment has passed">
+                        <i class="fas fa-video me-1"></i>Join Meeting
+                      </button>
+                    {% endif %}
                     <span class='badge bg-secondary'>{{ appt.get_status_display }}</span>
                   </div>
                 </div>
@@ -156,34 +166,77 @@
     document.addEventListener('DOMContentLoaded', function() {
       const searchInput = document.getElementById('searchInput');
       const filterStatus = document.getElementById('filterStatus');
-      
+
+      // Check and update Join Meeting buttons based on appointment time
+      function updateJoinMeetingButtons() {
+        const now = new Date();
+        const joinButtons = document.querySelectorAll('.join-meeting-btn');
+        
+        joinButtons.forEach(button => {
+          const apptDateStr = button.getAttribute('data-appointment-date');
+          if (!apptDateStr) return;
+          
+          const apptDate = new Date(apptDateStr);
+          const meetingStart = new Date(apptDate.getTime() - 10 * 60 * 1000); // 10 minutes before
+          const meetingEnd = new Date(apptDate.getTime() + 60 * 60 * 1000); // 1 hour after (assuming 30-60 min meetings)
+          
+          if (now >= meetingStart && now <= meetingEnd) {
+            // Meeting time - enable button
+            button.classList.remove('disabled', 'btn-secondary');
+            button.classList.add('btn-success');
+            button.style.pointerEvents = 'auto';
+            button.style.opacity = '1';
+            button.title = 'Click to join the meeting';
+          } else if (now < meetingStart) {
+            // Not yet time - disable button
+            button.classList.add('disabled', 'btn-secondary');
+            button.classList.remove('btn-success');
+            button.style.pointerEvents = 'none';
+            button.style.opacity = '0.6';
+            const minutesUntilStart = Math.floor((meetingStart - now) / 60000);
+            button.title = `Meeting starts in ${minutesUntilStart} minutes (opens 10 min before)`;
+          } else {
+            // Meeting has ended
+            button.classList.add('disabled', 'btn-secondary');
+            button.classList.remove('btn-success');
+            button.style.pointerEvents = 'none';
+            button.style.opacity = '0.6';
+            button.title = 'This meeting has ended';
+          }
+        });
+      }
+
+      // Run on page load and check every minute
+      updateJoinMeetingButtons();
+      setInterval(updateJoinMeetingButtons, 60000);
+
       function filterAppointments() {
         const searchTerm = searchInput.value.toLowerCase();
         const filter = filterStatus.value;
-        
+
         const allItems = document.querySelectorAll('.appointment-item');
         allItems.forEach(item => {
           const doctorName = item.querySelector('strong').textContent.toLowerCase();
           const reason = item.querySelector('.text-muted:last-child')?.textContent.toLowerCase() || '';
           const isUpcoming = item.closest('#upcomingList') !== null;
-          
+
           const matchesSearch = doctorName.includes(searchTerm) || reason.includes(searchTerm);
           const matchesFilter = !filter || (filter === 'upcoming' && isUpcoming) || (filter === 'past' && !isUpcoming);
-          
+
           if (matchesSearch && matchesFilter) {
             item.style.display = '';
           } else {
             item.style.display = 'none';
           }
         });
-        
+
         // Update counts
         const upcomingVisible = document.querySelectorAll('#upcomingList .appointment-item[style=""]').length;
         const pastVisible = document.querySelectorAll('#pastList .appointment-item[style=""]').length;
         document.getElementById('upcomingCount').textContent = filter === 'past' ? 0 : (filter ? upcomingVisible : document.querySelectorAll('#upcomingList .appointment-item').length);
         document.getElementById('pastCount').textContent = filter === 'upcoming' ? 0 : (filter ? pastVisible : document.querySelectorAll('#pastList .appointment-item').length);
       }
-      
+
       searchInput.addEventListener('input', filterAppointments);
       filterStatus.addEventListener('change', filterAppointments);
     });

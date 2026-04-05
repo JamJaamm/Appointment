@@ -136,6 +136,24 @@
               <textarea class="form-control" name="location" id="location"
                 rows="3">{{ userinfo.location|default:'' }}</textarea>
             </div>
+            <div class="col-12">
+              <label class="form-label"><i class="fas fa-user-md me-1"></i> Biography</label>
+              <textarea class="form-control" name="bio" id="bio"
+                rows="5" placeholder="Tell patients about your experience, qualifications, and approach to care...">{{ userinfo.bio|default:'' }}</textarea>
+              <small class="form-text text-muted">This will be displayed on your profile for patients to see.</small>
+            </div>
+            <div class="col-12">
+              <label class="form-label"><i class="fas fa-graduation-cap me-1"></i> Education</label>
+              <textarea class="form-control" name="education" id="education"
+                rows="4" placeholder="e.g., MD - Harvard Medical School&#10;MBBS - All India Institute of Medical Sciences&#10;Residency - Johns Hopkins Hospital">{{ userinfo.education|default:'' }}</textarea>
+              <small class="form-text text-muted">Enter one education per line. Include degrees, residencies, and fellowships.</small>
+            </div>
+            <div class="col-12">
+              <label class="form-label"><i class="fas fa-certificate me-1"></i> Certifications</label>
+              <textarea class="form-control" name="certifications" id="certifications"
+                rows="4" placeholder="e.g., Board Certified in Internal Medicine&#10;Fellowship - American Board of Surgery&#10;Advanced Cardiac Life Support (ACLS)">{{ userinfo.certifications|default:'' }}</textarea>
+              <small class="form-text text-muted">Enter one certification per line.</small>
+            </div>
             <div class="col-12 text-center mt-3">
               {% if target.id != request.user.id %}
               <input type="hidden" name="user_id" value="{{ target.id }}">
