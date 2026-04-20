@@ -207,8 +207,8 @@ def loginpage(request):
 
         user_auth = authenticate(username=user.username, password=password)
         if user_auth is not None:
-            # check if verified
-            if not user.userinfo.email_verified:
+            # check if verified (skip for superusers)
+            if not user.is_superuser and not user.userinfo.email_verified:
                 error = 'Please verify your email before logging in.'
                 return render(request, 'login.html', {'error': error, 'email': email, 'next': next_url})
             login(request, user_auth)
@@ -2235,6 +2235,8 @@ def doctorbook_appointment(request):
 
         # Create appointment
         try:
+            from .models import Notification
+            
             appointment = zoom_appointment.objects.create(
                 doctor=doctor,
                 patient=patient,
@@ -2243,6 +2245,16 @@ def doctorbook_appointment(request):
                 duration=30,
                 status='pending'  # Pending doctor approval
             )
+            
+            # Create notification for doctor
+            patient_name = request.user.get_full_name() or request.user.username
+            Notification.objects.create(
+                user=doctor,
+                notification_type='appointment_booked',
+                message=f'New appointment request from {patient_name} on {appointment_datetime.strftime("%B %d, %Y at %I:%M %p")}',
+                appointment=appointment
+            )
+            
             message = f'Appointment booked successfully with Dr. {doctor.get_full_name()}. Status: Pending doctor approval.'
             redirect_url = reverse('patient_appointments')
             return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
@@ -2372,28 +2384,39 @@ def reschedule_appointment(request, appointment_id):
 
 @login_required
 def cancel_appointment(request, appointment_id):
+    from .models import Notification
 
     if request.user.is_staff:
         return redirect('doctors_dashboard')
-    
+
     try:
         patient = Patient.objects.get(user=request.user)
         appointment = zoom_appointment.objects.get(pk=appointment_id, patient=patient)
     except (Patient.DoesNotExist, zoom_appointment.DoesNotExist):
         messages.error(request, 'Appointment not found.')
         return redirect('patient_appointments')
-    
+
     if appointment.status in ['completed', 'cancelled']:
         messages.warning(request, 'Cannot cancel this appointment.')
         return redirect('patient_appointments')
-    
+
     if request.method == 'POST':
         appointment.status = 'cancelled'
         appointment.save()
+        
+        # Create notification for doctor
+        patient_name = request.user.get_full_name() or request.user.username
+        Notification.objects.create(
+            user=appointment.doctor,
+            notification_type='appointment_cancelled',
+            message=f'{patient_name} has cancelled their appointment on {appointment.date.strftime("%B %d, %Y at %I:%M %p")}',
+            appointment=appointment
+        )
+        
         message = 'Appointment cancelled successfully.'
         redirect_url = reverse('patient_appointments')
         return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
-    
+
     # GET: Show confirmation page
     return render(request, 'confirm_cancel_appointment.html', {'appointment': appointment})
 
@@ -2449,6 +2472,7 @@ def doctor_appointments(request):
 
 @login_required
 def approve_appointment(request, appointment_id):
+    from .models import Notification
 
     if not request.user.is_staff:
         return redirect('user_dashboard')
@@ -2460,7 +2484,7 @@ def approve_appointment(request, appointment_id):
             status='pending'
         )
         appointment.status = 'approved'
-        
+
         # Create Zoom meeting if not already created
         if not appointment.zoom_join_url:
             topic = f"Consultation - {appointment.patient.user.get_full_name()}"
@@ -2470,8 +2494,18 @@ def approve_appointment(request, appointment_id):
                 appointment.zoom_meeting_id = meeting.get('id', '')
                 appointment.zoom_join_url = meeting.get('join_url', '')
                 appointment.zoom_start_url = meeting.get('start_url', '')
-        
+
         appointment.save()
+        
+        # Create notification for patient
+        doctor_name = appointment.doctor.get_full_name() or appointment.doctor.username
+        Notification.objects.create(
+            user=appointment.patient.user,
+            notification_type='appointment_approved',
+            message=f'Dr. {doctor_name} has approved your appointment on {appointment.date.strftime("%B %d, %Y at %I:%M %p")}',
+            appointment=appointment
+        )
+        
         message = f'Appointment with {appointment.patient.user.get_full_name()} approved.'
         redirect_url = reverse('doctor_appointments')
         return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
@@ -2483,6 +2517,7 @@ def approve_appointment(request, appointment_id):
 
 @login_required
 def decline_appointment(request, appointment_id):
+    from .models import Notification
 
     if not request.user.is_staff:
         return redirect('user_dashboard')
@@ -2499,6 +2534,16 @@ def decline_appointment(request, appointment_id):
             appointment.status = 'cancelled'
             appointment.reschedule_reason = decline_reason  # Store reason
             appointment.save()
+            
+            # Create notification for patient
+            doctor_name = appointment.doctor.get_full_name() or appointment.doctor.username
+            Notification.objects.create(
+                user=appointment.patient.user,
+                notification_type='appointment_declined',
+                message=f'Dr. {doctor_name} has declined your appointment on {appointment.date.strftime("%B %d, %Y at %I:%M %p")}. Reason: {decline_reason or "Not specified"}',
+                appointment=appointment
+            )
+            
             message = 'Appointment declined.'
             redirect_url = reverse('doctor_appointments')
             return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
@@ -2578,10 +2623,22 @@ def complete_appointment(request, appointment_id):
         return redirect('doctor_appointments')
 
     if request.method == 'POST':
+        from .models import Notification
+        
         notes = request.POST.get('notes', '').strip()
         appointment.status = 'completed'
         appointment.notes = notes
         appointment.save()
+        
+        # Create notification for patient
+        doctor_name = appointment.doctor.get_full_name() or appointment.doctor.username
+        Notification.objects.create(
+            user=appointment.patient.user,
+            notification_type='appointment_completed',
+            message=f'Your appointment with Dr. {doctor_name} on {appointment.date.strftime("%B %d, %Y at %I:%M %p")} has been completed',
+            appointment=appointment
+        )
+        
         message = 'Appointment marked as completed.'
         redirect_url = reverse('doctor_appointments')
         return redirect(f"{reverse('success_page')}?message={message}&redirect_url={redirect_url}")
@@ -2611,7 +2668,7 @@ def get_available_times(request):
 
 @login_required
 def add_doctor_availability(request):
-    """Add availability slot for doctor."""
+   
     if not hasattr(request.user, 'doctor'):
         return JsonResponse({'error': 'Access denied'}, status=403)
 
@@ -2660,7 +2717,7 @@ def delete_doctor_availability(request, availability_id):
 
 @login_required
 def get_doctor_availability_schedule(request):
-    """Get doctor's weekly availability schedule."""
+   
     if not hasattr(request.user, 'doctor'):
         return JsonResponse({'error': 'Access denied'}, status=403)
 
@@ -2733,9 +2790,7 @@ def admin_appointments(request):
 
 @login_required
 def admin_approve_appointment(request, appointment_id):
-    """
-    Admin approves an appointment - only then can the doctor see it
-    """
+
     if not request.user.is_superuser:
         return redirect('admin_dashboard')
 
@@ -2760,9 +2815,7 @@ def admin_approve_appointment(request, appointment_id):
 
 @login_required
 def admin_reject_appointment(request, appointment_id):
-    """
-    Admin rejects an appointment
-    """
+
     if not request.user.is_superuser:
         return redirect('admin_dashboard')
 
@@ -2877,7 +2930,6 @@ def admin_edit_appointment(request, appointment_id):
 
 @login_required
 def get_patient_appointments_api(request):
-    """API endpoint to fetch patient's appointments in real-time."""
     if request.user.is_staff:
         return JsonResponse({'error': 'Access denied'}, status=403)
 
@@ -2944,65 +2996,97 @@ def get_patient_appointments_api(request):
 
 @login_required
 def get_appointment_notifications_api(request):
-    """API endpoint to fetch unread notifications for patient."""
-    try:
-        patient = Patient.objects.get(user=request.user)
-    except Patient.DoesNotExist:
-        return JsonResponse({'notifications': [], 'count': 0})
-
-    notifications = []
-    now = timezone.now()
-
-    # Get recent appointments with status changes
-    recent_appointments = zoom_appointment.objects.filter(
-        patient=patient
-    ).select_related('doctor').order_by('-created_at')[:10]
-
-    for appt in recent_appointments:
-        # Notification for approved appointments
-        if appt.status == 'approved' and appt.date >= now:
-            notifications.append({
-                'id': f'appt_{appt.id}',
-                'icon': 'fa-calendar-check',
-                'text': f'Appointment with Dr. {appt.doctor.get_full_name()} approved for {appt.date.strftime("%b %d, %I:%M %p")}',
-                'type': 'success',
-                'appointment_id': appt.id,
-            })
-        # Notification for pending doctor approval
-        elif appt.status == 'pending':
-            notifications.append({
-                'id': f'appt_{appt.id}',
-                'icon': 'fa-hourglass',
-                'text': f'Appointment with Dr. {appt.doctor.get_full_name()} awaiting doctor approval',
-                'type': 'warning',
-                'appointment_id': appt.id,
-            })
-        # Notification for completed appointments
-        elif appt.status == 'completed':
-            notifications.append({
-                'id': f'appt_{appt.id}',
-                'icon': 'fa-check-circle',
-                'text': f'Appointment with Dr. {appt.doctor.get_full_name()} completed',
-                'type': 'info',
-                'appointment_id': appt.id,
-            })
-
-    # Get unread messages
-    unread_messages = Message.objects.filter(
-        recipient=request.user,
+    from .models import Notification
+    
+    # Get unread notifications
+    unread_notifications = Notification.objects.filter(
+        user=request.user,
         is_read=False
-    ).select_related('sender').order_by('-timestamp')[:5]
-
-    for msg in unread_messages:
+    ).select_related('appointment').order_by('-created_at')[:15]
+    
+    # Get read notifications (recent ones)
+    read_notifications = Notification.objects.filter(
+        user=request.user,
+        is_read=True
+    ).select_related('appointment').order_by('-created_at')[:5]
+    
+    notifications = []
+    
+    # Icon mapping
+    icon_map = {
+        'appointment_booked': 'fa-calendar-plus',
+        'appointment_approved': 'fa-check-circle',
+        'appointment_declined': 'fa-times-circle',
+        'appointment_cancelled': 'fa-ban',
+        'appointment_completed': 'fa-check-double',
+        'appointment_reschedule_requested': 'fa-clock',
+        'message_received': 'fa-envelope',
+    }
+    
+    # Type mapping for styling
+    type_map = {
+        'appointment_booked': 'warning',
+        'appointment_approved': 'success',
+        'appointment_declined': 'danger',
+        'appointment_cancelled': 'secondary',
+        'appointment_completed': 'info',
+        'appointment_reschedule_requested': 'warning',
+        'message_received': 'primary',
+    }
+    
+    for notif in unread_notifications:
         notifications.append({
-            'id': f'msg_{msg.id}',
-            'icon': 'fa-envelope',
-            'text': f'New message from {msg.sender.get_full_name() or msg.sender.username}: {msg.subject or "No subject"}',
-            'type': 'primary',
-            'message_id': msg.id,
+            'id': notif.id,
+            'icon': icon_map.get(notif.notification_type, 'fa-bell'),
+            'text': notif.message,
+            'type': type_map.get(notif.notification_type, 'secondary'),
+            'appointment_id': notif.appointment.id if notif.appointment else None,
+            'is_read': False,
+            'created_at': notif.created_at.isoformat(),
         })
-
+    
+    for notif in read_notifications:
+        notifications.append({
+            'id': notif.id,
+            'icon': icon_map.get(notif.notification_type, 'fa-bell'),
+            'text': notif.message,
+            'type': type_map.get(notif.notification_type, 'secondary'),
+            'appointment_id': notif.appointment.id if notif.appointment else None,
+            'is_read': True,
+            'created_at': notif.created_at.isoformat(),
+        })
+    
     return JsonResponse({
         'notifications': notifications,
-        'count': len(notifications)
+        'count': len(unread_notifications)
     })
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    from .models import Notification
+    
+    if request.method == 'POST':
+        try:
+            notification = Notification.objects.get(
+                id=notification_id,
+                user=request.user
+            )
+            notification.is_read = True
+            notification.save()
+            return JsonResponse({'success': True})
+        except Notification.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Notification not found'}, status=404)
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def mark_all_notifications_read(request):
+    from .models import Notification
+    
+    if request.method == 'POST':
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)

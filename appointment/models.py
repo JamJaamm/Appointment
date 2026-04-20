@@ -224,3 +224,28 @@ class Reminder(models.Model):
 
     class Meta:
         ordering = ['date_time']
+
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('appointment_booked', 'Appointment Book'),
+        ('appointment_approved', 'Appointment Approved'),
+        ('appointment_declined', 'Appointment Declined'),
+        ('appointment_cancelled', 'Appointment Cancelled'),
+        ('appointment_completed', 'Appointment Completed'),
+        ('appointment_reschedule_requested', 'Reschedule Requested'),
+        ('message_received', 'New Message'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=32, choices=NOTIFICATION_TYPES)
+    message = models.TextField()
+    appointment = models.ForeignKey('zoom_appointment', on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification for {self.user.get_full_name() or self.user.username}: {self.message}"

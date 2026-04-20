@@ -100,6 +100,8 @@ urlpatterns = [
     # Real-time API endpoints
     path('api/patient-appointments/', views.get_patient_appointments_api, name='api_patient_appointments'),
     path('api/appointment-notifications/', views.get_appointment_notifications_api, name='api_appointment_notifications'),
+    path('api/notifications/<int:notification_id>/mark-read/', views.mark_notification_read, name='mark_notification_read'),
+    path('api/notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 
     # Patient Reminders
     path('user_reminders', views.user_reminderspage, name='user_reminders'),
@@ -108,6 +110,9 @@ urlpatterns = [
     path('reminders/<int:reminder_id>/delete/', views.delete_reminder, name='delete_reminder'),
     path('reminders/<int:reminder_id>/toggle-complete/', views.mark_reminder_completed, name='mark_reminder_completed'),
     path('send-reminder-to-doctor/', views.send_reminder_to_doctor, name='send_reminder_to_doctor'),
+
+    # Django admin (must be last to avoid catching /admin/* routes)
+    path('admin/', admin.site.urls),
 ]
 
 # Serve media files in development

@@ -29,7 +29,7 @@
             <div class="d-flex align-items-center gap-2">
                 <div class="me-2 text-end d-none d-md-block">
                     <small class="text-muted">Today</small>
-                    <div class="fw-bold" style="color: var(--primary-blue);">"Keep patient notes updated"</div>
+                    <div class="fw-bold" style="color: var(--primary-blue);">"New notifications"</div>
                 </div>
                 <div class="dropdown">
                     <button class="btn btn-light position-relative" id="notifBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications" style="width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
@@ -129,11 +129,11 @@
                         <option>Missed</option>
                     </select>
                 </div>
-                <div class="ms-auto">
+                <!-- <div class="ms-auto">
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPatientModal" style="border-radius: 8px;">
                         <i class="fas fa-user-plus me-2"></i>Add Patient
                     </button>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -406,22 +406,104 @@
         alert('Mark patient ' + id + ' as missed - This would update the database');
     }
 
-    // Notifications demo
-    let notifications = [
-        {id:1, text:'Upcoming appointment reminder', seen:false},
-        {id:2, text:'New patient registration', seen:false}
-    ];
-    function renderNotifs() {
+    // Notification system
+    let allNotifications = [];
+    
+    async function fetchNotifications() {
+        try {
+            const response = await fetch('{% url "api_appointment_notifications" %}');
+            const data = await response.json();
+            allNotifications = data.notifications || [];
+            renderNotifications();
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    }
+
+    function renderNotifications() {
         const list = document.getElementById('notifList');
         list.innerHTML = '';
-        notifications.forEach(n => {
-            const li = document.createElement('li');
-            li.innerHTML = `<a class='dropdown-item' href='#' style="color: var(--text-secondary);">${n.text}</a>`;
-            list.appendChild(li);
-        });
-        const unseen = notifications.filter(n=>!n.seen).length;
-        document.getElementById('notifBadge').textContent = unseen;
-        document.getElementById('notifBadge').style.display = unseen? 'inline-block':'none';
+        
+        if (allNotifications.length === 0) {
+            list.innerHTML = '<li><div class="dropdown-item text-center text-muted py-3">No notifications</div></li>';
+        } else {
+            allNotifications.forEach(n => {
+                const li = document.createElement('li');
+                const opacity = n.is_read ? 'opacity: 0.6;' : '';
+                const badgeClass = n.type === 'success' ? 'bg-success' : 
+                                   n.type === 'danger' ? 'bg-danger' : 
+                                   n.type === 'warning' ? 'bg-warning text-dark' : 
+                                   n.type === 'info' ? 'bg-info' : 'bg-primary';
+                
+                li.innerHTML = `
+                    <a class='dropdown-item' href='#' 
+                       style="color: var(--text-secondary); ${opacity} padding: 10px 15px;"
+                       onclick="markAsRead(${n.id}, ${n.appointment_id || 'null'})">
+                        <div class="d-flex align-items-start">
+                            <i class="fas ${n.icon} me-2 mt-1" style="color: var(--primary-blue);"></i>
+                            <div class="flex-grow-1">
+                                <div>${n.text}</div>
+                                <small class="text-muted">${timeAgo(n.created_at)}</small>
+                            </div>
+                            ${!n.is_read ? '<span class="badge ' + badgeClass + ' ms-2">New</span>' : ''}
+                        </div>
+                    </a>
+                `;
+                list.appendChild(li);
+            });
+        }
+        
+        const unreadCount = allNotifications.filter(n => !n.is_read).length;
+        document.getElementById('notifBadge').textContent = unreadCount;
+        document.getElementById('notifBadge').style.display = unreadCount > 0 ? 'inline-block' : 'none';
+    }
+
+    async function markAsRead(notificationId, appointmentId) {
+        try {
+            const response = await fetch(`/api/notifications/${notificationId}/mark-read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchNotifications();
+                if (appointmentId) {
+                    // Optionally navigate to appointment details
+                    console.log('Navigate to appointment:', appointmentId);
+                }
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    }
+
+    function timeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+        
+        if (seconds < 60) return 'Just now';
+        if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+        return `${Math.floor(seconds / 86400)} days ago`;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
     // Filters & search
@@ -430,6 +512,9 @@
     document.getElementById('filterStatus').addEventListener('change', filterPatients);
 
     // Initialize
-    renderNotifs();
+    fetchNotifications();
+    
+    // Refresh notifications every 30 seconds
+    setInterval(fetchNotifications, 30000);
     </script>
 {% endblock content %}

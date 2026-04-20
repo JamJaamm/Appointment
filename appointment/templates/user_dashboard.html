@@ -44,9 +44,9 @@
             <div class="col-md-3">
                 <div class="card stat-card-primary">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center" style="color: aliceblue;">
                             <div>
-                                <h6 class="mb-0">Upcoming Appointments</h6>
+                                <h6 class="mb-0" style="color: white;">Upcoming Appointments</h6>
                                 <h3 class="mb-0">{{ stat_upcoming }}</h3>
                             </div>
                             <i class="fas fa-calendar-alt fa-2x opacity-50"></i>
@@ -59,7 +59,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-0">Completed</h6>
+                                <h6 class="mb-0" style="color: white;">Completed</h6>
                                 <h3 class="mb-0">{{ stat_completed }}</h3>
                             </div>
                             <i class="fas fa-check-circle fa-2x opacity-50"></i>
@@ -72,7 +72,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-0">Pending</h6>
+                                <h6 class="mb-0" style="color: white;">Pending</h6>
                                 <h3 class="mb-0">{{ stat_pending }}</h3>
                             </div>
                             <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
@@ -85,7 +85,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-0">Prescriptions</h6>
+                                <h6 class="mb-0" style="color: white;">Prescriptions</h6>
                                 <h3 class="mb-0">{{ stat_prescriptions }}</h3>
                             </div>
                             <i class="fas fa-prescription-bottle-alt fa-2x opacity-50"></i>
@@ -258,6 +258,165 @@
                     }
                 });
             }
+        });
+
+        // Notification system
+        let allNotifications = [];
+        let notificationDropdown = null;
+        
+        async function fetchNotifications() {
+            try {
+                const response = await fetch('{% url "api_appointment_notifications" %}');
+                const data = await response.json();
+                allNotifications = data.notifications || [];
+                renderNotifications();
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notificationList');
+            list.innerHTML = '';
+            
+            if (allNotifications.length === 0) {
+                list.innerHTML = '<div class="text-center text-muted py-3">No notifications</div>';
+            } else {
+                allNotifications.forEach(n => {
+                    const opacity = n.is_read ? 'opacity: 0.6;' : '';
+                    const badgeClass = n.type === 'success' ? 'bg-success' : 
+                                       n.type === 'danger' ? 'bg-danger' : 
+                                       n.type === 'warning' ? 'bg-warning text-dark' : 
+                                       n.type === 'info' ? 'bg-info' : 'bg-primary';
+                    
+                    const notifEl = document.createElement('div');
+                    notifEl.className = 'd-flex align-items-start p-2 mb-2 rounded';
+                    notifEl.style.cssText = `background-color: var(--bg-secondary); ${opacity} cursor: pointer;`;
+                    notifEl.onclick = () => markAsRead(n.id, n.appointment_id);
+                    
+                    notifEl.innerHTML = `
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-start">
+                                <i class="fas ${n.icon} me-2 mt-1" style="color: var(--primary-blue);"></i>
+                                <div class="flex-grow-1">
+                                    <div style="color: var(--text-primary);">${n.text}</div>
+                                    <small class="text-muted">${timeAgo(n.created_at)}</small>
+                                </div>
+                                ${!n.is_read ? '<span class="badge ' + badgeClass + ' ms-2">New</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(notifEl);
+                });
+            }
+            
+            const unreadCount = allNotifications.filter(n => !n.is_read).length;
+            document.getElementById('notificationBadge').textContent = unreadCount;
+            document.getElementById('notificationBadge').style.display = unreadCount > 0 ? 'flex' : 'none';
+        }
+
+        async function markAsRead(notificationId, appointmentId) {
+            try {
+                const response = await fetch(`/api/notifications/${notificationId}/mark-read/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    fetchNotifications();
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        async function markAllAsRead() {
+            try {
+                const response = await fetch('{% url "mark_all_notifications_read" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    fetchNotifications();
+                }
+            } catch (error) {
+                console.error('Error marking all notifications as read:', error);
+            }
+        }
+
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Initialize notification bell
+        document.addEventListener('DOMContentLoaded', function() {
+            const bell = document.getElementById('notificationBell');
+            const dropdown = document.getElementById('notificationDropdown');
+            const markAllBtn = document.getElementById('markAllReadBtn');
+            
+            // Toggle dropdown on bell click
+            bell.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                    dropdown.style.display = 'block';
+                    fetchNotifications();
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            });
+            
+            // Mark all as read
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    markAllAsRead();
+                });
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                dropdown.style.display = 'none';
+            });
+            
+            // Prevent dropdown from closing when clicking inside
+            dropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Fetch notifications on page load
+            fetchNotifications();
+            
+            // Refresh notifications every 30 seconds
+            setInterval(fetchNotifications, 30000);
         });
     </script>
 

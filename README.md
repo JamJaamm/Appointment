@@ -871,7 +871,7 @@ cd doctors-appointment
 ```bash
 # Windows
 python -m venv venv
-venv\Scripts\activate
+tests\Scripts\activate
 
 # Linux/Mac
 python3 -m venv venv
@@ -1295,3 +1295,4 @@ python manage.py shell
 **Version**: 1.0.0  
 **Django Version**: 4.2.27  
 **Python Version**: 3.x
+ 
