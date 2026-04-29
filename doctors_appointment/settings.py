@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-%x#9(e$0q=z$qsxr-b^xb45l)(jpk30@du!b!f7n4_urk8jxbe
 # DEBUG = True
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', 'presentfilmmayor.pythonanywhere.com', '*']
 
 
 # Application definition
