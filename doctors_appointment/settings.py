@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # DEBUG = True
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', 'presentfilmmayor.pythonanywhere.com', '*']
+ALLOWED_HOSTS = ['*', '.onrender.com']
 
 
 # Application definition
