@@ -20,6 +20,9 @@ from appointment import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+print('Hello This site is working fine')
+
 urlpatterns = [
     path('', views.homepage, name='home'), 
     path('services', views.servicespage, name='services'), 
