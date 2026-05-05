@@ -85,12 +85,8 @@ LOGIN_URL = '/login'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'appointment',
-        'HOST': 'localhost',
-        'USER': 'root', 
-        'PASSWORD': '', 
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'appointment.sqlite3',
     }
 }
 
