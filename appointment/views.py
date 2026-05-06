@@ -48,7 +48,7 @@ def homepage(request):
         is_active=True,
         is_superuser=False
     ).select_related('userinfo', 'doctor').filter(doctor__isnull=False)
-    return render(request, 'appointment/index.html', {'available_doctors': available_doctors})
+    return render(request, '/index.html', {'available_doctors': available_doctors})
  
 def servicespage(request):
     return render(request, 'services.html')
