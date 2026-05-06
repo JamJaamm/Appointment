@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # DEBUG = True
 DEBUG = False
 
-ALLOWED_HOSTS = ['*','.onrender.com']
+ALLOWED_HOSTS = ['*','.onrender.com','.railway.app']
 
 
 # Application definition
