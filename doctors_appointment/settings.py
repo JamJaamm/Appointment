@@ -18,6 +18,7 @@ import os.path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-fallback-key")
+SECRET_KEY = 'django-insecure-%x#9(e$0q=z$qsxr-b^xb45l)(jpk30@du!b!f7n4_urk8jxbe'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -130,7 +131,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'appointment', 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' 
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # python manage.py collectstatic
