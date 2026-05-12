@@ -142,17 +142,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Use SMTP backend for Mailpit
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = '127.0.0.1'  # Or 'localhost'
-EMAIL_PORT = 1025  # Mailpit's default SMTP port
-EMAIL_USE_TLS = False  # Mailpit doesn't require TLS for local testing
-EMAIL_USE_SSL = False  # Not needed
-EMAIL_HOST_USER = ''  # No authentication required
-EMAIL_HOST_PASSWORD = ''  # No password
 
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
-# For testing without Mailpit - emails show in console
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@doctors-appointment.com'
+EMAIL_HOST_USER = 'mobongjubola@gmail.com'
+EMAIL_HOST_PASSWORD = 'ofwg gsvm yimd xreq'
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 # ZOOM API
