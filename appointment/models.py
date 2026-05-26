@@ -1,5 +1,6 @@
 # models.py (no changes needed; verification_code and expiry are in UserInfo)
 from django.db import models
+from django.db.models import Case, IntegerField, Value, When
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -37,6 +38,21 @@ class Doctor(models.Model):
         return f"{self.user.get_full_name()} - {self.speciality}"
 
 
+class DoctorAvailabilityManager(models.Manager):
+    def get_queryset(self):
+        day_order = Case(
+            When(day_of_week='Monday', then=Value(0)),
+            When(day_of_week='Tuesday', then=Value(1)),
+            When(day_of_week='Wednesday', then=Value(2)),
+            When(day_of_week='Thursday', then=Value(3)),
+            When(day_of_week='Friday', then=Value(4)),
+            When(day_of_week='Saturday', then=Value(5)),
+            When(day_of_week='Sunday', then=Value(6)),
+            output_field=IntegerField(),
+        )
+        return super().get_queryset().annotate(day_order=day_order).order_by('day_order', 'start_time')
+
+
 class DoctorAvailability(models.Model):
     """Doctor's weekly availability schedule."""
     doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='availabilities')
@@ -53,6 +69,8 @@ class DoctorAvailability(models.Model):
     end_time = models.TimeField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = DoctorAvailabilityManager()
 
     class Meta:
         ordering = ['day_of_week', 'start_time']

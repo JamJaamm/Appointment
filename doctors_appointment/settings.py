@@ -17,8 +17,7 @@ import os.path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-fallback-key")
-SECRET_KEY = 'django-insecure-%x#9(e$0q=z$qsxr-b^xb45l)(jpk30@du!b!f7n4_urk8jxbe'
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-%x#9(e$0q=z$qsxr-b^xb45l)(jpk30@du!b!f7n4_urk8jxbe")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -159,7 +158,7 @@ DEFAULT_FROM_EMAIL = 'noreply@doctors-appointment.com'
 
 
 # ZOOM API
-ZOOM_ACCOUNT_ID = "oRB79TxhTFSFZtZEW2ViPw"
-ZOOM_CLIENT_ID = "VIUGtsltRUsWj6KX_qMw"
-ZOOM_CLIENT_SECRET = "NGcxZBZBUkmz2iRiS2sM8D7vENTS1FND"
-ZOOM_BASE_URL = "https://api.zoom.us/v2/"
+ZOOM_ACCOUNT_ID = os.environ.get("ZOOM_ACCOUNT_ID", "")
+ZOOM_CLIENT_ID = os.environ.get("ZOOM_CLIENT_ID", "")
+ZOOM_CLIENT_SECRET = os.environ.get("ZOOM_CLIENT_SECRET", "")
+ZOOM_BASE_URL = os.environ.get("ZOOM_BASE_URL", "https://api.zoom.us/v2/")

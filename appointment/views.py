@@ -1,10 +1,8 @@
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from datetime import datetime, time
-timepackage = datetime.now()
-# from .models import appointment
 from django.contrib import messages
-from django.contrib.auth.hashers import make_password # encrypt password
-from dateutil.parser import parse # update date from database
+from dateutil.parser import parse
 
 from django.contrib.auth.decorators import login_required # login required
 from django.db import IntegrityError
@@ -12,7 +10,7 @@ from django.db.models import Sum, Q
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-from .models import UserInfo, Doctor
+from .models import UserInfo, Doctor, Reminder
 from django.contrib.auth import login, logout, authenticate
 from .models import Patient, zoom_appointment, Message, Prescription, MedicalRecord
 
@@ -2726,7 +2724,7 @@ def get_doctor_availability_schedule(request):
         availabilities = DoctorAvailability.objects.filter(
             doctor=request.user,
             is_active=True
-        ).order_by('day_of_week', 'start_time')
+        ).order_by('start_time')
 
         schedule = {}
         for avail in availabilities:
